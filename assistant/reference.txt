@@ -1,0 +1,49 @@
+*** 참고 ***
+* 파이썬 클래스 (class), 메서드 (method), 함수 (function) Docstring - 문서화 작성 예시
+참고 URL - https://peps.python.org/pep-0257/
+참고 2 URL - https://wikidocs.net/16050
+참고 3 URL - https://wikidocs.net/276151
+참고 4 URL - https://soma0sd.tistory.com/130
+참고 5 URL - https://spirit0833.tistory.com/3
+참고 6 URL - https://m.blog.naver.com/withnicebambi/223553537062
+
+* 비쥬얼스튜디오코드 (VSCode) 파이썬 코드접기 (# region, # endregion)
+참고 URL - https://m.blog.naver.com/cjinnnn/222950485960
+
+* 비쥬얼스튜디오코드 (VSCode) 다중 커서 - 여러 줄 선택 하는 2가지 방법
+1. Ctrl + Alt + (↑, ↓)
+2. Shift + Alt + 마우스 드래그
+참고 URL - https://hianna.tistory.com/358
+
+* 파이썬 가상환경 생성 방법
+비쥬얼스튜디오코드 (VSCode) cmd 터미널창 열고 -> 터미널 명령어 python -m venv "가상환경이름" 입력 및 엔터 
+예) python -m venv assistant_env
+가상환경 폴더 "assistant_env" 안에는 앞으로 가상환경에 설치할 모든 라이브러리 소스코드가 저장된다. (예) 폴더 Include, Lib, Scripts 등등...
+
+* 파이썬 가상환경 활성화 방법
+비쥬얼스튜디오코드 (VSCode) cmd 터미널창 열고 -> 터미널 명령어 "가상환경이름"\Scripts\activate.bat 입력 및 엔터
+예) assistant_env\Scripts\activate.bat
+위의 명령어가 뜻하는 것은 새로 생성한 가상환경 "assistant_env" 안에 폴더 Scripts 안에 activate.bat 파일을 실행한다는 뜻이다.
+
+가상환경이 활성화 되면 아래처럼 cmd 터미널창 맨 왼쪽에 (가상환경이름)이 생성된다.
+(예) (assistant_env) D:\minjae\test_AI_Assistant\chatbot>
+
+가상환경이 활성화 되면 이제 cmd 터미널창 안에서 설치하는 모든 라이브러리는 해당 가상 환경 안에 설치 된다.
+
+* 파이썬 스크립트 파일 (assistant.py)과 새로 설치한 가상환경 (assistant_env) 연결 방법 
+1. 비쥬얼스튜디오코드 (VSCode) 상단 리본 탭 "View" 클릭 -> 컨텍스트 메뉴 "Command Palette..." 클릭 
+2. Python: Select Interpreter 검색 및 클릭
+3. 방금 전에 설치했던 가상환경 "Python 3.11.4 ('assistant_env') .\assistant_env\Scripts\python.exe" 클릭
+4. 해당 파이썬 스크립트 파일 (assistant.py)은 방금 전 생성한 가상환경 "assistant_env"와 연결 되어 해당 가상환경 안에서 작업 가능하다.
+
+* 파이썬 스크립트 파일 (assistant.py) 실행 방법
+비쥬얼스튜디오코드 (VSCode) cmd 터미널창 열고 -> 터미널 명령어 python assistant.py 입력 및 엔터
+
+* 설치된 파이썬 패키지 목록 작성된 requirements.txt 텍스트 파일 생성 방법
+참고 URL - https://code-angie.tistory.com/15
+pip freeze > requirements.txt 명령어 사용 및 커밋
+
+* 비쥬얼스튜디오코드 (VSCode) cmd 터미널창에 아래처럼 파이썬 환경변수 라이브러리 "python-dotenv" 설치 및 환경 변수 파일 ".env" 사용하기
+설치 명령어 - pip install python-dotenv
+주의사항 - 깃허브 (GitHub), 깃소스트리 (SourceTree) 등등...
+          오픈 소스 관리 프로그램에는 환경 변수 파일 ".env"을 Git 커밋 (commit), 푸시 (push) 처리하면 오류가 발생하므로 해당 환경 변수 파일 ".env"는 Git 커밋 (commit), 푸시 (push) 처리하면 안 된다.
