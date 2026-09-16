@@ -1,0 +1,30 @@
+sequenceDiagram
+    participant U as 사용자
+    participant S as Streamlit UI
+    participant M as st.session_state<br/>messages
+    participant B as build_request_messages
+    participant O as OpenAI API<br/>Chat Completions
+
+    U->>S: OpenAI API 키 입력<br/>(사이드바 · 마스킹)
+    Note over S: 키는 세션 메모리에만 유지<br/>저장소·서버에 남지 않음
+
+    U->>S: 질문 입력 (st.chat_input)
+    S->>M: user 메시지 추가
+    M->>B: 전체 이력 전달
+    Note over B: 1. 오류 메시지 제외<br/>2. 최근 10턴만 유지<br/>3. 시스템 프롬프트 주입
+    B->>O: messages 전송 (stream=True)
+
+    alt 정상 응답
+        loop 토큰 조각 수신
+            O-->>S: delta.content
+            S-->>U: st.write_stream 실시간 출력
+        end
+        S->>M: assistant 메시지 추가
+        S-->>U: 모델명 · 소요 시간 표시
+    else API 오류 발생
+        O-->>S: 예외 (401 · 429 · 404 · timeout 등)
+        S->>S: to_user_message 로 안내 문구 변환
+        S->>M: 오류 메시지 추가 (error=True)
+        Note over M: error=True 항목은<br/>다음 요청에서 제외되어<br/>컨텍스트가 오염되지 않음
+        S-->>U: 원인 + 조치 방법 안내
+    end
