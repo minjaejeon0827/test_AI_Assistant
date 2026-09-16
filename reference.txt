@@ -26,14 +26,14 @@
 위의 명령어가 뜻하는 것은 새로 생성한 가상환경 "assistant_env" 안에 폴더 Scripts 안에 activate.bat 파일을 실행한다는 뜻이다.
 
 가상환경이 활성화 되면 아래처럼 cmd 터미널창 맨 왼쪽에 (가상환경이름)이 생성된다.
-(예) (assistant_env) D:\minjae\test_AI_Assistant\chatbot>
+(예) (assistant_env) D:\minjae\test_AI_Assistant>
 
 가상환경이 활성화 되면 이제 cmd 터미널창 안에서 설치하는 모든 라이브러리는 해당 가상 환경 안에 설치 된다.
 
 * 파이썬 스크립트 파일 (app.py)과 새로 설치한 가상환경 (assistant_env) 연결 방법 
 1. 비쥬얼스튜디오코드 (VSCode) 상단 리본 탭 "View" 클릭 -> 컨텍스트 메뉴 "Command Palette..." 클릭 
 2. Python: Select Interpreter 검색 및 클릭
-3. 방금 전에 설치했던 가상환경 "Python 3.11.4 ('assistant_env') .\assistant_env\Scripts\python.exe" 클릭
+3. 방금 전에 설치했던 가상환경 "Python 3.12.1 ('assistant_env') .\assistant_env\Scripts\python.exe" 클릭
 4. 해당 파이썬 스크립트 파일 (app.py)은 방금 전 생성한 가상환경 "assistant_env"와 연결 되어 해당 가상환경 안에서 작업 가능하다.
 
 * 파이썬 스크립트 파일 (app.py) 실행 방법

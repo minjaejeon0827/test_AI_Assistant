@@ -9,7 +9,7 @@
 
 <br/>
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.52-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
 ![OpenAI](https://img.shields.io/badge/OpenAI-gpt--3.5--turbo-412991?style=flat-square&logo=openai&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-PoC%20(개발%20중단)-9E9E9E?style=flat-square)
@@ -105,7 +105,7 @@ LLM API는 **무상태(stateless)** 이다. 직전 대화를 기억하지 못하
 
 | 구분 | 사용 기술 |
 |---|---|
-| 언어 | Python 3.11 |
+| 언어 | Python 3.12 |
 | UI | Streamlit 1.52 |
 | LLM | OpenAI `gpt-3.5-turbo` (`openai` 0.28.1) |
 

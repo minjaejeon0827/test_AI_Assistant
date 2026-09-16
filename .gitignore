@@ -17,7 +17,7 @@ credentials.json
 venv/
 env/
 ENV/
-chatbot_env/
+assistant_env/
 *.egg-info/
 
 # --- Python 캐시 ------------------------------------------------------------

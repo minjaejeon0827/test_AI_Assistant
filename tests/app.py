@@ -15,6 +15,9 @@ pip uninstall openai
 참고 URL - https://docs.python.org/ko/3/reference/compound_stmts.html#index-16
 참고 2 URL - https://velog.io/@hyungraelee/Python-with
 
+* yield 표현식
+참고: https://docs.python.org/ko/3/reference/expressions.html#yieldexpr
+
 *** 기타 문서 ***
 * FastAPI, Streamlit, OpenAI 챗봇 만들기
 참고 URL - https://youtu.be/n_MhxO16EaY?si=TyDrasy7Pa7OdTO3
