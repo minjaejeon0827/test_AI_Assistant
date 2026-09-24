@@ -1,0 +1,53 @@
+flowchart TB
+    classDef user fill:#E8F1FB,stroke:#3B7DD8,stroke-width:2px,color:#12304F
+    classDef app fill:#EEF2F7,stroke:#94A3B8,stroke-width:1.5px,color:#1E293B
+    classDef store fill:#F1F5F9,stroke:#64748B,stroke-width:1.5px,color:#1E293B
+    classDef decision fill:#FEF9C3,stroke:#CA8A04,stroke-width:2px,color:#4A3B00
+    classDef ai fill:#F3E8FF,stroke:#9333EA,stroke-width:2px,color:#4A1D73
+    classDef out fill:#E7F6EC,stroke:#2E9E5B,stroke-width:2px,color:#14532D
+
+    Q["사용자 질문"]:::user
+    KB[("지식 베이스<br/>26청크 · 8개 제품")]:::store
+
+    subgraph JUDGE["판정 — LLM 모델 호출 없음 · 결정적"]
+        direction TB
+        G1["① 입력 검증<br/>길이 · 프롬프트 인젝션 패턴"]:::app
+        DET["② 제품 · 버전 감지<br/>긴 별칭 우선<br/>직전 대화 제품 승계"]:::app
+        SR["③ 하이브리드 검색<br/>어휘 + 벡터<br/>제품 필터"]:::app
+        GATE{"④ 근거 게이트<br/>앵커 0.45<br/>무앵커 0.63"}:::decision
+    end
+
+    subgraph ANSWER["답변"]
+        direction TB
+        KEY{"API 키<br/>사용량 한도"}:::decision
+        LLM["⑤ LLM 모델 생성<br/>Chat Completions<br/>또는 Responses"]:::ai
+        PC{"⑥ 사후 검증<br/>전환 신호 · 인용<br/>링크"}:::decision
+    end
+
+    BLK["차단 · 형식 안내"]:::out
+    HO1["상담원 연결<br/>미지원 제품 · 버전"]:::out
+    ASK["제품 되묻기"]:::out
+    HO2["상담원 연결<br/>근거 부족"]:::out
+    EX["추출형 답변<br/>근거 문서 원문"]:::out
+    HO3["상담원 연결<br/>전환 신호 · 인용 오류"]:::out
+    GEN["생성형 답변<br/>근거 문서 ID 인용"]:::out
+    MEM["이력 요약 압축<br/>최근 6턴 + 요약"]:::app
+    DB[("SQLite<br/>대화 · 사용량 · 상담 요청")]:::store
+
+    Q --> G1
+    G1 -->|차단| BLK
+    G1 --> DET
+    DET -->|범위 밖| HO1
+    DET --> SR
+    KB -.-> SR
+    SR --> GATE
+    GATE -->|제품 미지정| ASK
+    GATE -->|근거 부족| HO2
+    GATE -->|근거 충분| KEY
+    KEY -->|키 없음 · 한도 · 장애| EX
+    KEY -->|사용 가능| LLM
+    MEM -.-> LLM
+    LLM --> PC
+    PC -->|실패| HO3
+    PC -->|통과| GEN
+    DB -.->|새로고침 시 복원| MEM
