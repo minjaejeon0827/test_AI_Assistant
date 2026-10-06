@@ -1,12 +1,16 @@
 """
 app.py
-* 테스트용 기술지원 AI Assistant (Streamlit + OpenAI)
+* 테스트용 기술지원 AI Assistant (Streamlit + OpenAI + RAG)
 
 변경 이력
 - 2026.09  openai 0.28.1 → 3.x SDK 마이그레이션
            응답 스트리밍, 시스템 프롬프트, 예외 처리, 대화 이력 윈도우 적용
+- 2026.09  Autodesk 제품 설치 가이드 8종 지식 베이스 RAG 연결
+           근거 게이트 · 상담원 연결 전환, 이력 요약 압축, SQLite 대화 저장, 사용량 상한,
+           Chat Completions / Responses API 어댑터, 키 없이 동작하는 추출형 답변 모드
 
 패키지 설치
+- pip install -r requirements.txt
 - pip install openai
 - pip install streamlit
 
@@ -46,417 +50,423 @@ app.py
 
 from __future__ import annotations
 
+import os
+import tempfile
 import time
-from typing import Iterator
+import uuid
 
 import streamlit as st
-from openai import (
-    OpenAI,
-    APIConnectionError,
-    APIStatusError,
-    APITimeoutError,
-    AuthenticationError,
-    BadRequestError,
-    NotFoundError,
-    OpenAIError,
-    PermissionDeniedError,
-    RateLimitError,
+
+from assistant import config as C
+from assistant import llm, memory
+from assistant.embed import make_embedder
+from assistant.kb import KBUnavailable, load_kb, load_links
+from assistant.pipeline import (
+    ConversationState,
+    Decision,
+    build_prompt,
+    decide,
+    extractive_answer,
+    handoff_message,
+    postcheck,
+    pretty_citations,
 )
+from assistant.retriever import Retriever
+from assistant.store import Store
+from assistant.usage import Quota
 
 # region 설정 상수
 
 APP_TITLE = "[테스트] 상상플렉스 AI Assistant"
-APP_CAPTION = "AI Assistant는 실수를 할 수 있습니다. 응답을 반드시 다시 확인해 주세요."
-
-# 모델명은 수시로 추가·폐기되므로 코드 곳곳에 흩뿌리지 않고 여기 한 곳에서만 관리한다.
-# 폐기된 모델을 호출하면 NotFoundError가 발생하며, 아래 _ERROR_GUIDE에서 안내 문구로 변환된다.
-MODEL_OPTIONS: dict[str, str] = {
-    "gpt-5.6-terra": "균형형 — 품질과 비용의 절충 (기본값)",
-    "gpt-5.6-luna": "경량형 — 비용 민감 워크로드",
-    "gpt-5.6-sol": "고성능형 — 복잡한 문의 대응",
-}
-DEFAULT_MODEL = "gpt-5.6-terra"
-
-# 대화 이력 윈도우: 최근 N턴(user+assistant 쌍)만 API 요청에 포함한다.
-# 전체 이력을 매번 보내면 토큰 사용량이 대화 길이에 비례해 선형 증가하기 때문이다.
-MAX_HISTORY_TURNS = 10
-
-REQUEST_TIMEOUT = 30.0   # 단일 요청 타임아웃(초)
-MAX_RETRIES = 2          # SDK 내장 자동 재시도 횟수 (429/5xx 대상)
-
-# 시스템 프롬프트로 역할을 고정한다.
-# 현재 검색(RAG) 단계가 없으므로 "모르면 모른다고 답하라"는 지침을 명시해
-# 사실이 아닌 설치 절차를 지어내는 것을 억제한다.
-SYSTEM_PROMPT = """당신은 Autodesk 제품 설치 기술지원 담당자입니다.
-
-응답 규칙:
-1. 한국어로, 단계별 번호를 붙여 간결하게 답변합니다.
-2. 확실하지 않은 정보는 추측하지 않고 모른다고 말합니다.
-3. 설치 경로·버전·라이선스처럼 정확성이 중요한 내용은
-   반드시 공식 문서 확인이 필요하다고 덧붙입니다.
-4. 답변이 어려운 문의는 기술지원 콜센터 연결을 안내합니다.
-5. 기술지원과 무관한 주제는 정중히 범위를 벗어난다고 안내합니다."""
-
 GREETING = "안녕하세요. Autodesk 제품 설치 관련하여 어떤 도움이 필요하신가요?"
 
 # endregion 설정 상수
 
-# region OpenAI 클라이언트
+# region 공유 자원 (비밀 정보 없음 · 읽기 전용 → cache_resource 로 전역 공유해도 안전하다)
 
 
-def get_client(api_key: str) -> OpenAI:
-    """
-    Description: OpenAI 클라이언트를 세션 단위로 생성·재사용한다.
+@st.cache_resource(show_spinner=False)
+def get_kb():
+    """지식 베이스. 읽지 못하면 (None, 사유) — 근거 없이 답변하지 않도록 모든 질문을 상담원으로 넘긴다."""
+    try:
+        return load_kb(), ""
+    except KBUnavailable as exc:
+        return None, str(exc)
 
-                 st.cache_resource를 쓰지 않은 이유:
-                 캐시는 프로세스 전역이므로 여러 사용자가 접속하는 배포 환경에서
-                 한 사용자의 API 키가 다른 사용자에게 재사용될 수 있다.
-                 st.session_state는 브라우저 세션 단위이므로 API 키 타인 재사용 문제가 발생하지 않는다.
 
-    Parameters: api_key - 사용자가 입력한 OpenAI API 키
+@st.cache_resource(show_spinner=False)
+def get_links() -> dict[str, str]:
+    return load_links()
 
-    Returns: OpenAI 클라이언트 인스턴스
-    """
 
+@st.cache_resource(show_spinner=False)
+def get_store() -> tuple[Store | None, str]:
+    """대화 저장소. 설정 경로 → 임시 폴더 순으로 시도하고, 둘 다 실패하면 저장 없이 동작한다."""
+    for path in (C.DB_PATH, os.path.join(tempfile.gettempdir(), "assistant.db")):
+        try:
+            return Store(path), str(path)
+        except Exception:  # noqa: BLE001 - 읽기 전용 파일 시스템 등
+            continue
+    return None, ""
+
+
+# endregion 공유 자원
+
+# region 세션 자원 (API 키가 얽힌 객체는 세션 단위로만 보관한다)
+
+
+def get_client(api_key: str):
+    """키가 바뀔 때만 클라이언트를 새로 만든다. 전역 캐시에 두면 다른 사용자에게 재사용될 수 있다."""
     if st.session_state.get("_client_key") != api_key:
-        st.session_state["_client"] = OpenAI(
-            api_key=api_key,
-            timeout=REQUEST_TIMEOUT,
-            max_retries=MAX_RETRIES,
-        )
+        st.session_state["_client"] = llm.make_client(api_key)
         st.session_state["_client_key"] = api_key
-
     return st.session_state["_client"]
 
 
-# endregion OpenAI 클라이언트
-
-# region 대화 이력
-
-
-def init_session() -> None:
-    """
-    Description: 세션 상태 초기화 (최초 1회만 실행)
-
-    Parameters: 없음.
-
-    Returns: 없음.
-    """
-
-    if "messages" not in st.session_state:
-        st.session_state["messages"] = [
-            {"role": "assistant", "content": GREETING, "error": False}
-        ]
+def get_retriever(kb, api_key: str) -> Retriever:
+    """키가 있고 벡터 인덱스가 있으면 하이브리드, 아니면 어휘 검색만 쓴다."""
+    tag = "vector" if api_key and C.VECTORS_NPY.exists() else "local"
+    if st.session_state.get("_retriever_tag") != (tag, api_key):
+        embedder = make_embedder(api_key) if tag == "vector" else None
+        st.session_state["_retriever"] = Retriever(kb, embedder)
+        st.session_state["_retriever_tag"] = (tag, api_key)
+    return st.session_state["_retriever"]
 
 
-def reset_session() -> None:
-    """
-    Description: 대화 이력 초기화 (API 키는 유지)
-
-    Parameters: 없음.
-
-    Returns: 없음.
-    """
-
-    st.session_state["messages"] = [
-        {"role": "assistant", "content": GREETING, "error": False}
-    ]
-
-
-def build_request_messages(max_turns: int = MAX_HISTORY_TURNS) -> list[dict[str, str]]:
-    """
-    Description: API 요청용 messages 배열을 구성한다.
-
-                 두 가지를 처리한다.
-                 1) 오류 메시지 제외 - 화면에는 남기되 요청에는 넣지 않는다.
-                    오류 문구가 컨텍스트에 섞이면 모델이 이를 대화 내용으로 오인한다.
-                 2) 최근 N턴만 유지 - 토큰 사용량의 무한 증가를 막는다.
-
-    Parameters: max_turns - 요청에 포함할 최대 턴 수 (user+assistant 쌍 기준)
-
-    Returns: system 프롬프트가 맨 앞에 붙은 messages 배열
-    """
-
-    usable = [m for m in st.session_state["messages"] if not m.get("error")]
-    trimmed = usable[-(max_turns * 2):]
-
-    return [{"role": "system", "content": SYSTEM_PROMPT}] + [
-        {"role": m["role"], "content": m["content"]} for m in trimmed
-    ]
+def resolve_api_key(sidebar_key: str) -> tuple[str, str]:
+    """(키, 출처). 사이드바 입력 > 배포자 키(.env · 환경 변수 · secrets)."""
+    if sidebar_key:
+        return sidebar_key, "사용자 키"
+    server = os.getenv("OPENAI_API_KEY", "")
+    if not server:
+        try:
+            server = st.secrets.get("OPENAI_API_KEY", "")
+        except Exception:  # noqa: BLE001 - secrets.toml 이 없으면 예외가 난다
+            server = ""
+    return (server, "배포자 키") if server else ("", "")
 
 
-# endregion 대화 이력
+# endregion 세션 자원
 
-# region 스트리밍 응답
+# region 대화 상태
 
 
-def stream_answer(
-    client: OpenAI,
-    model: str,
-    messages: list[dict[str, str]],
-    temperature: float | None = None,
-) -> Iterator[str]:
-    """
-    Description: Chat Completions 스트리밍 호출 후 텍스트 조각(delta)을 순차 반환한다.
-                 제너레이터이므로 st.write_stream에 그대로 전달할 수 있다.
+def load_conversation(store: Store | None) -> None:
+    """URL 의 대화 ID 로 이전 대화를 복원한다. 새로고침해도 대화가 사라지지 않는다."""
+    if "messages" in st.session_state:
+        return
+    conv_id = st.query_params.get("c")
+    if store and conv_id and store.exists(conv_id):
+        saved = store.load_state(conv_id)
+        st.session_state.update(
+            conv_id=conv_id,
+            messages=store.load_messages(conv_id),
+            conv_state=ConversationState.from_dict(saved).to_dict(),
+            summary=saved.get("summary", ""),
+            summarized_count=saved.get("summarized_count", 0),
+        )
+    else:
+        # 대화 ID 는 첫 질문 때 만든다. 방문만 한 사람의 빈 대화가 DB 에 쌓이지 않게 한다.
+        st.session_state.update(conv_id=None, messages=[], conv_state={}, summary="", summarized_count=0)
+    st.session_state.setdefault("usage_fallback", [0, 0])
 
-    Parameters: client - OpenAI 클라이언트
-                model - 모델명
-                messages - 요청 messages 배열
-                temperature - 샘플링 온도 (None이면 미전송)
 
-    Returns: 응답 텍스트 조각 이터레이터
-    """
+def ensure_conversation(store: Store | None) -> str:
+    if not st.session_state["conv_id"]:
+        conv_id = store.create_conversation() if store else uuid.uuid4().hex
+        st.session_state["conv_id"] = conv_id
+        st.query_params["c"] = conv_id
+    return st.session_state["conv_id"]
 
-    params: dict = {"model": model, "messages": messages, "stream": True}
 
-    if temperature is not None:
-        params["temperature"] = temperature
+def reset_conversation(store: Store | None, delete: bool) -> None:
+    if delete and store and st.session_state.get("conv_id"):
+        store.delete_conversation(st.session_state["conv_id"])
+    for k in ("conv_id", "messages", "conv_state", "summary", "summarized_count", "usage_fallback"):
+        st.session_state.pop(k, None)
+    st.query_params.clear()
 
+
+def add_message(store: Store | None, role: str, content: str, *, error: bool = False,
+                meta: dict | None = None) -> None:
+    st.session_state["messages"].append({"role": role, "content": content, "error": error, "meta": meta or {}})
+    if store:
+        store.append_message(st.session_state["conv_id"], role, content, error=error, meta=meta)
+
+
+def save_state(store: Store | None) -> None:
+    if store:
+        store.save_state(st.session_state["conv_id"], summary=st.session_state["summary"],
+                         summarized_count=st.session_state["summarized_count"],
+                         state=st.session_state["conv_state"])
+
+
+def current_quota(store: Store | None) -> Quota:
+    conv_id = st.session_state.get("conv_id")
+    if store and conv_id:
+        calls, tokens = store.usage_totals(conv_id)
+        return Quota(calls, tokens, store.daily_calls())
+    calls, tokens = st.session_state.get("usage_fallback", [0, 0])
+    return Quota(calls, tokens)
+
+
+def log_usage(store: Store | None, **row) -> None:
+    if store:
+        store.log_usage(st.session_state["conv_id"], **row)
+    elif row.get("backend") in C.LLM_BACKENDS:
+        fb = st.session_state["usage_fallback"]
+        fb[0] += 1
+        fb[1] += row.get("prompt_tokens", 0) + row.get("completion_tokens", 0)
+
+
+# endregion 대화 상태
+
+# region 답변 처리
+
+
+def render_sources(meta: dict) -> None:
+    if meta.get("caption"):
+        st.caption(meta["caption"])
+    if meta.get("sources"):
+        with st.expander("📎 근거 문서", expanded=False):
+            for title in meta["sources"]:
+                st.markdown(f"- {title}")
+
+
+def reply_fixed(ctx: dict, prompt: str, d: Decision) -> None:
+    """LLM 없이 끝나는 판정 — 차단 · 형식 오류 · 인사 · 되묻기 · 상담원 연결."""
+    store = ctx["store"]
+    text = d.message
+    if d.kind == "handoff" and store:
+        store.record_handoff(st.session_state["conv_id"], d.reason, prompt)
+        text += "\n\n지금까지의 대화는 상담원이 이어서 확인할 수 있도록 저장되었습니다."
+    st.markdown(text)
+    meta = {"kind": d.kind, "reason": d.reason}
+    add_message(store, "assistant", text, meta=meta)
+    log_usage(store, kind="answer", backend="none", decision=d.kind, reason=d.reason,
+              retrieval_mode=d.mode, top_score=d.gate_lexical, latency_ms=d.latency_ms)
+
+
+def reply_extractive(ctx: dict, d: Decision, notice: str = "") -> None:
+    """근거 문서를 그대로 안내한다 — 키 없음 · 사용량 한도 · LLM 장애 시."""
+    text, _ = extractive_answer(d, ctx["links"])
+    if notice:
+        st.info(notice)
+    st.markdown(text)
+    meta = {"kind": "answer", "mode": "extractive", "sources": [d.top.chunk.title],
+            "cited": [d.top.chunk.id], "caption": "🔎 검색 결과 안내 (AI 요약 미사용)"}
+    render_sources(meta)
+    add_message(ctx["store"], "assistant", text, meta=meta)
+    log_usage(ctx["store"], kind="answer", backend="extractive", decision="answer",
+              retrieval_mode=d.mode, top_score=d.gate_lexical, latency_ms=d.latency_ms, grounded=True)
+
+
+def reply_generative(ctx: dict, prompt: str, d: Decision) -> None:
+    """근거 문서를 LLM 에 넣어 답변을 생성하고, 사후 검증을 통과한 것만 남긴다."""
+    store, client, backend, model = ctx["store"], ctx["client"], ctx["backend"], ctx["model"]
+    _, recent = memory.split_history(st.session_state["messages"][:-1])   # 방금 넣은 질문은 뺀다
+    p = build_prompt(prompt, d, memory.to_request(recent), st.session_state["summary"], ctx["links"])
+
+    state = llm.StreamState()
+    placeholder = st.empty()
+    t0 = time.perf_counter()
     try:
-        stream = client.chat.completions.create(**params)
-    except BadRequestError:
-        # 추론(reasoning) 계열 모델은 temperature를 지원하지 않아 400을 반환한다.
-        # 파라미터를 제거하고 1회만 재시도한다. (무한 재시도 방지)
-        if "temperature" not in params:
-            raise
-        params.pop("temperature")
-        stream = client.chat.completions.create(**params)
+        with placeholder.container():
+            st.write_stream(llm.stream_answer(client, backend=backend, model=model, system=p.system,
+                                              messages=p.messages, temperature=ctx["temperature"],
+                                              state=state))
+    except Exception as exc:  # noqa: BLE001 - 어떤 예외에도 화면이 깨지지 않게 한다
+        placeholder.empty()
+        log_usage(store, kind="answer", backend=backend, model=model, decision="error",
+                  reason=type(exc).__name__, latency_ms=int((time.perf_counter() - t0) * 1000))
+        # ★ degrade — 오류 안내만 하고 끝내지 않는다. 근거 문서가 이미 있으니 그대로 안내한다.
+        reply_extractive(ctx, d, notice=f"{llm.to_user_message(exc)} 검색 결과로 대신 안내합니다.")
+        return
+    latency_ms = int((time.perf_counter() - t0) * 1000)
 
-    for chunk in stream:
-        if not chunk.choices:
-            continue   # 사용량(usage) 전용 청크 등 choices가 비어 오는 경우가 있다.
-
-        delta = chunk.choices[0].delta
-
-        if delta and delta.content:
-            yield delta.content  # 값 전달하고 실행 양보(중단)하며 상태 기억 처리
-
-
-# endregion 스트리밍 응답
-
-# region 오류 처리
-
-# 예외 타입 → (사용자 안내 문구, 조치 방법)
-# 스택 트레이스를 그대로 노출하지 않고 "무엇을 하면 되는지"만 전달하는 것이 목적이다.
-_ERROR_GUIDE: dict[type[Exception], tuple[str, str]] = {
-    AuthenticationError: (
-        "API 키가 올바르지 않습니다.",
-        "사이드바의 키를 다시 확인해 주세요. 키 앞뒤 공백도 확인 대상입니다.",
-    ),
-    PermissionDeniedError: (
-        "선택한 모델에 접근 권한이 없습니다.",
-        "다른 모델을 선택하거나 계정 등급을 확인해 주세요.",
-    ),
-    NotFoundError: (
-        "요청한 모델을 찾을 수 없습니다.",
-        "모델이 폐기되었을 수 있습니다. 사이드바에서 다른 모델을 선택해 주세요.",
-    ),
-    RateLimitError: (
-        "요청 한도 또는 크레딧을 초과했습니다.",
-        "잠시 후 다시 시도하거나 결제 상태를 확인해 주세요.",
-    ),
-    BadRequestError: (
-        "요청 형식이 올바르지 않습니다.",
-        "대화를 초기화한 뒤 다시 시도해 주세요.",
-    ),
-    APITimeoutError: (
-        f"응답 시간이 {REQUEST_TIMEOUT:.0f}초를 초과했습니다.",
-        "질문을 짧게 나누어 다시 시도해 주세요.",
-    ),
-    APIConnectionError: (
-        "OpenAI 서버에 연결하지 못했습니다.",
-        "네트워크 연결 또는 방화벽 설정을 확인해 주세요.",
-    ),
-}
+    pc = postcheck(state.text, d, p.allowed_sources, handoff_signal=state.handoff)
+    if pc.kind == "answer":
+        shown = pretty_citations(pc.text)
+        with placeholder.container():
+            st.markdown(shown)
+        if pc.removed:
+            st.caption(f"근거 문서에 없는 링크·연락처 {len(pc.removed)}건을 삭제했습니다.")
+        titles = [h.chunk.title for h in d.hits if h.chunk.id in pc.cited] or [h.chunk.title for h in d.hits]
+        meta = {"kind": "answer", "mode": "generative", "sources": titles, "cited": pc.cited,
+                "caption": f"🤖 {model} · {backend} · {latency_ms / 1000:.1f}초"}
+    else:
+        # 모델이 전환 신호를 냈거나, 검색하지 않은 문서를 인용했다 → 스트리밍한 글을 지우고 상담원으로
+        shown = pc.text
+        if pc.kind == "handoff" and store:
+            store.record_handoff(st.session_state["conv_id"], pc.reason, prompt)
+            shown += "\n\n지금까지의 대화는 상담원이 이어서 확인할 수 있도록 저장되었습니다."
+        with placeholder.container():
+            st.markdown(shown)
+        meta = {"kind": pc.kind, "reason": pc.reason}
+    render_sources(meta)
+    add_message(store, "assistant", shown, meta=meta)
+    log_usage(store, kind="answer", backend=backend, model=model,
+              prompt_tokens=state.usage.prompt_tokens, completion_tokens=state.usage.completion_tokens,
+              estimated=state.usage.estimated, latency_ms=latency_ms, decision=pc.kind, reason=pc.reason,
+              retrieval_mode=d.mode, top_score=d.gate_lexical, grounded=pc.grounded)
+    maybe_update_summary(ctx)
 
 
-def to_user_message(exc: Exception) -> str:
-    """
-    Description: 예외를 사용자에게 보여줄 안내 문구로 변환한다.
+def maybe_update_summary(ctx: dict) -> None:
+    """최근 N턴 밖으로 밀려난 메시지가 쌓이면 요약을 갱신한다."""
+    older, _ = memory.split_history(st.session_state["messages"])
+    done = st.session_state["summarized_count"]
+    if not memory.needs_update(len(older), done):
+        return
 
-    Parameters: exc - 발생한 예외 객체
+    def complete_fn(system: str, messages: list[dict]) -> str:
+        t0 = time.perf_counter()
+        text, usage = llm.complete(ctx["client"], backend=ctx["backend"], model=C.SUMMARY_MODEL,
+                                   system=system, messages=messages)
+        log_usage(ctx["store"], kind="summary", backend=ctx["backend"], model=C.SUMMARY_MODEL,
+                  prompt_tokens=usage.prompt_tokens, completion_tokens=usage.completion_tokens,
+                  estimated=usage.estimated, latency_ms=int((time.perf_counter() - t0) * 1000))
+        return text
 
-    Returns: 사용자 안내 문구
-    """
-
-    for exc_type, (reason, action) in _ERROR_GUIDE.items():
-        if isinstance(exc, exc_type):
-            return f"**{reason}**\n\n{action}"
-
-    if isinstance(exc, APIStatusError):
-        return (
-            f"**OpenAI 서버 오류가 발생했습니다. (HTTP {exc.status_code})**\n\n"
-            "잠시 후 다시 시도해 주세요."
-        )
-
-    if isinstance(exc, OpenAIError):
-        return "**OpenAI API 호출 중 오류가 발생했습니다.**\n\n잠시 후 다시 시도해 주세요."
-
-    return "**예상하지 못한 오류가 발생했습니다.**\n\n대화를 초기화한 뒤 다시 시도해 주세요."
+    st.session_state["summary"] = memory.update_summary(st.session_state["summary"], older[done:], complete_fn)
+    st.session_state["summarized_count"] = len(older)
 
 
-# endregion 오류 처리
-
-# region 화면 구성
-
-
-def render_sidebar() -> tuple[str, str, float]:
-    """
-    Description: 사이드바 렌더링 (API 키 입력, 모델 선택, 온도 조절, 대화 초기화)
-
-    Parameters: 없음.
-
-    Returns: api_key - 입력받은 OpenAI API 키
-             model - 선택한 모델명
-             temperature - 샘플링 온도
-    """
-
-    with st.sidebar:
-        st.subheader("설정")
-
-        # API 키를 코드나 .env가 아닌 화면 입력으로 받는다.
-        # 공개 저장소에 키가 남지 않고, 여러 사용자가 각자 키로 테스트할 수 있다.
-        api_key = st.text_input(
-            "OpenAI API Key",
-            key="chatbot_api_key",
-            type="password",
-            placeholder="sk-...",
-            help="입력한 키는 브라우저 세션에만 유지되며 서버나 저장소에 기록되지 않습니다.",
-        ).strip()
-
-        model = st.selectbox(
-            "모델",
-            options=list(MODEL_OPTIONS.keys()),
-            index=list(MODEL_OPTIONS.keys()).index(DEFAULT_MODEL),
-            format_func=lambda name: f"{name} · {MODEL_OPTIONS[name]}",
-        )
-
-        temperature = st.slider(
-            "응답 다양성 (temperature)",
-            min_value=0.0, max_value=1.0, value=0.2, step=0.1,
-            help="기술지원 답변은 일관성이 중요하므로 낮은 값을 권장합니다.",
-        )
-
-        st.divider()
-
-        turns = len([m for m in st.session_state["messages"] if not m.get("error")])
-        st.caption(f"화면 표시 메시지 {turns}개 · 요청 포함 최대 {MAX_HISTORY_TURNS}턴")
-
-        if st.button("대화 초기화", use_container_width=True):
-            reset_session()
-            st.rerun()
-
-        st.divider()
-        st.caption("[상상플렉스](https://www.ssflex.co.kr/) · [㈜상상진화](https://imbu.co.kr/)")
-
-    return api_key, model, temperature
-
-
-def render_history() -> None:
-    """
-    Description: 지금까지의 대화 이력을 화면에 출력한다.
-
-    Parameters: 없음.
-
-    Returns: 없음.
-    """
-
-    for msg in st.session_state["messages"]:
-        with st.chat_message(msg["role"]):
-            if msg.get("error"):
-                st.error(msg["content"])
-            else:
-                st.markdown(msg["content"])
-
-
-def handle_prompt(prompt: str, client: OpenAI, model: str, temperature: float) -> None:
-    """
-    Description: 사용자 질문 한 건을 처리한다. (이력 추가 → 스트리밍 응답 → 이력 반영)
-
-    Parameters: prompt - 사용자 질문
-                client - OpenAI 클라이언트
-                model - 모델명
-                temperature - 샘플링 온도
-
-    Returns: 없음.
-    """
-
-    st.session_state["messages"].append(
-        {"role": "user", "content": prompt, "error": False}
-    )
-
+def handle_prompt(prompt: str, ctx: dict) -> None:
+    store = ctx["store"]
+    ensure_conversation(store)
+    add_message(store, "user", prompt)
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        started_at = time.perf_counter()
-
         try:
-            answer = st.write_stream(
-                stream_answer(
-                    client=client,
-                    model=model,
-                    messages=build_request_messages(),
-                    temperature=temperature,
-                )
-            )
-            elapsed = time.perf_counter() - started_at
-            st.caption(f"{model} · {elapsed:.1f}초")
+            if ctx["kb"] is None:
+                d = Decision("handoff", "kb_unavailable", handoff_message("kb_unavailable"))
+                reply_fixed(ctx, prompt, d)
+                return
+            state = ConversationState.from_dict(st.session_state["conv_state"])
+            d, new_state = decide(prompt, state, ctx["kb"], ctx["retriever"])
+            st.session_state["conv_state"] = new_state.to_dict()
 
-            st.session_state["messages"].append(
-                {"role": "assistant", "content": answer, "error": False}
-            )
+            if d.kind != "answer":
+                reply_fixed(ctx, prompt, d)
+            elif ctx["client"] is None:
+                reply_extractive(ctx, d)
+            elif (quota := current_quota(store)).exhausted:
+                reply_extractive(ctx, d, notice=f"{quota.reason}에 도달해 AI 요약 없이 검색 결과로 안내합니다.")
+            else:
+                reply_generative(ctx, prompt, d)
+        except Exception as exc:  # noqa: BLE001
+            msg = llm.to_user_message(exc)
+            st.error(msg)
+            add_message(store, "assistant", msg, error=True)   # 화면엔 남기고 다음 요청에서는 뺀다
+        finally:
+            if st.session_state.get("conv_id"):
+                save_state(store)
 
-        except Exception as exc:   # noqa: BLE001 - 어떤 예외에도 화면이 깨지지 않아야 한다.
-            message = to_user_message(exc)
-            st.error(message)
 
-            # 오류도 이력에 남겨 사용자가 상황을 인지하게 하되,
-            # build_request_messages에서 제외되므로 다음 요청 컨텍스트는 오염되지 않는다.
-            st.session_state["messages"].append(
-                {"role": "assistant", "content": message, "error": True}
-            )
+# endregion 답변 처리
+
+# region 화면 구성
+
+
+def render_settings() -> tuple[str, str, str, str, float]:
+    with st.sidebar:
+        st.subheader("설정")
+        # 공개 저장소이므로 키는 화면 입력으로 받는다. 세션 메모리에만 있고 DB 에도 저장하지 않는다.
+        sidebar_key = st.text_input("OpenAI API Key (선택)", type="password",
+                                    help="없으면 검색 결과를 그대로 안내하는 추출형 모드로 동작합니다.").strip()
+        api_key, source = resolve_api_key(sidebar_key)
+        model = st.selectbox("모델", list(C.CHAT_MODELS), index=list(C.CHAT_MODELS).index(C.DEFAULT_MODEL),
+                             format_func=lambda m: f"{m} — {C.CHAT_MODELS[m].split(' — ')[0]}",
+                             disabled=not api_key)
+        with st.expander("고급 설정"):
+            backend = st.radio("LLM 호출 방식", C.LLM_BACKENDS, index=C.LLM_BACKENDS.index(C.LLM_BACKEND),
+                               format_func={"chat": "Chat Completions", "responses": "Responses API"}.get,
+                               horizontal=True, disabled=not api_key)
+            temperature = st.slider("temperature", 0.0, 1.0, C.DEFAULT_TEMPERATURE, 0.1, disabled=not api_key)
+    return api_key, source, model, backend, temperature
+
+
+def render_status(ctx: dict, key_source: str, kb_error: str, store_path: str) -> None:
+    store = ctx["store"]
+    with st.sidebar:
+        st.divider()
+        st.subheader("상태")
+        if kb_error:
+            st.error("지식 베이스를 불러오지 못해 모든 문의를 상담원에게 연결합니다.")
+        else:
+            kb = ctx["kb"]
+            mode = "하이브리드 (어휘 + 벡터)" if ctx["retriever"].mode == "hybrid" else "어휘 검색"
+            st.caption(f"📚 지식 베이스 {len(kb.chunks)}개 문서 · 제품 {len(kb.products)}종 · {mode}")
+        if ctx["client"]:
+            st.caption(f"🤖 생성형 답변 · {key_source}")
+            q = current_quota(store)
+            st.progress(q.call_ratio, text=f"호출 {q.calls} / {q.max_calls}회")
+            st.progress(q.token_ratio, text=f"토큰 {q.tokens:,} / {q.max_tokens:,}")
+        else:
+            st.caption("🔎 추출형 답변 (API 키 없음) — 근거 문서를 그대로 안내합니다")
+
+        summary = st.session_state["summary"] or memory.topic_trail(st.session_state["messages"])
+        if summary:
+            with st.expander("이전 대화 요약"):
+                st.write(summary)
+
+        if st.session_state.get("conv_id"):
+            st.caption(f"대화 ID `{st.session_state['conv_id'][:8]}…` — 주소를 저장하면 이어서 볼 수 있습니다")
+        if not store:
+            st.warning("저장소를 쓸 수 없어 새로고침하면 대화가 사라집니다.")
+        c1, c2 = st.columns(2)
+        if c1.button("새 대화", use_container_width=True):
+            reset_conversation(store, delete=False)
+            st.rerun()
+        if c2.button("대화 삭제", use_container_width=True, disabled=not st.session_state.get("conv_id")):
+            reset_conversation(store, delete=True)
+            st.rerun()
+
+
+def render_history() -> None:
+    with st.chat_message("assistant"):
+        st.markdown(GREETING)
+    for m in st.session_state["messages"]:
+        with st.chat_message(m["role"]):
+            text = m["content"]
+            if m["role"] == "assistant" and (m.get("meta") or {}).get("mode") == "generative":
+                text = pretty_citations(text)
+            if m.get("error"):
+                st.error(text)
+            else:
+                st.markdown(text)
+            if m["role"] == "assistant":
+                render_sources(m.get("meta") or {})
 
 
 def main() -> None:
-    """
-    Description: 애플리케이션 진입점
+    st.set_page_config(page_title=APP_TITLE, page_icon="🛠️")
+    st.title(APP_TITLE)
 
-    Parameters: 없음.
+    kb, kb_error = get_kb()
+    store, store_path = get_store()
+    load_conversation(store)
+    api_key, key_source, model, backend, temperature = render_settings()
 
-    Returns: 없음.
-    """
+    ctx = {
+        "kb": kb,
+        "store": store,
+        "links": get_links(),
+        "client": get_client(api_key) if api_key else None,
+        "retriever": get_retriever(kb, api_key) if kb else None,
+        "model": model,
+        "backend": backend,
+        "temperature": temperature,
+    }
 
-    st.set_page_config(page_title=APP_TITLE, page_icon="🛠️", layout="centered")
-
-    init_session()
-
-    st.header(APP_TITLE)
-    st.caption(APP_CAPTION)
-    st.divider()
-
-    api_key, model, temperature = render_sidebar()
     render_history()
-
     prompt = st.chat_input("Autodesk 제품 설치 관련 문의를 입력해 주세요.")
-
-    if not prompt:
-        return
-
-    if not api_key:
-        st.info("좌측 사이드바에 OpenAI API Key를 먼저 입력해 주세요.")
-        st.stop()
-
-    handle_prompt(
-        prompt=prompt,
-        client=get_client(api_key),
-        model=model,
-        temperature=temperature,
-    )
-
-
-# endregion 화면 구성
+    if prompt:
+        handle_prompt(prompt, ctx)
+    render_status(ctx, key_source, kb_error, store_path)   # 방금 쓴 사용량까지 반영해 마지막에 그린다
 
 
 if __name__ == "__main__":
