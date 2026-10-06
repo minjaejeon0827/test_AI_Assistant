@@ -12,12 +12,25 @@ secrets.toml
 *.key
 credentials.json
 
+# 사내 배포 링크 실제 주소 (예시 파일 links.example.json 만 커밋한다)
+data/links.local.json
+
+# 원본 설치 가이드 — Autodesk 서명 URL(authparam) 57개 · 콜센터 번호 포함.
+# 지식 베이스 원본은 URL 을 제거한 data/install_kb.md 다.
+product_installation_guide*.md
+
+# 대화 기록 DB — 고객 문의 원문이 들어간다
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
 # --- 가상환경 ---------------------------------------------------------------
 .venv/
 venv/
 env/
 ENV/
 assistant_env/
+chatbot_env/
 *.egg-info/
 
 # --- Python 캐시 ------------------------------------------------------------
