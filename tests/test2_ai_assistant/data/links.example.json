@@ -1,0 +1,10 @@
+{
+  "_설명": "links.local.json 으로 복사해 실제 사내 배포 주소(https://)를 넣는다. links.local.json 은 커밋하지 않는다. 비워 두면 콜센터 안내 문구가 대신 나간다.",
+  "cadbox_setup": "",
+  "energybox_setup": "",
+  "revitbox_2026": "",
+  "revitbox_2025": "",
+  "revitbox_2024": "",
+  "revitbox_2023": "",
+  "revitbox_2022": ""
+}

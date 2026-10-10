@@ -1,0 +1,81 @@
+# ============================================================================
+# Python / Streamlit 프로젝트용 .gitignore
+# ============================================================================
+
+# --- 보안: 절대 커밋 금지 -----------------------------------------------------
+.env
+.env.*
+!.env.example
+secrets.toml
+.streamlit/secrets.toml
+*.pem
+*.key
+credentials.json
+
+# 사내 배포 링크 실제 주소 (예시 파일 links.example.json 만 커밋한다)
+data/links.local.json
+
+# 원본 설치 가이드 — Autodesk 서명 URL(authparam) 57개 · 콜센터 번호 포함.
+# 지식 베이스 원본은 URL 을 제거한 data/install_kb.md 다.
+product_installation_guide*.md
+
+# 대화 기록 DB — 고객 문의 원문이 들어간다
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# --- 가상환경 ---------------------------------------------------------------
+.venv/
+venv/
+env/
+ENV/
+assistant_env/
+chatbot_env/
+*.egg-info/
+
+# --- Python 캐시 ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Jupyter ----------------------------------------------------------------
+.ipynb_checkpoints/
+
+# --- 에디터 / IDE -----------------------------------------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.code-workspace
+.history/
+
+# --- OS ---------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# --- 로그 / 임시 파일 --------------------------------------------------------
+*.log
+logs/
+tmp/
+*.tmp
+*.bak
+
+# --- 프로젝트별 ------------------------------------------------------------
+# README에 첨부하는 이미지는 커밋 대상이므로 assets/ 는 무시하지 않습니다.
+# 대신 원본 녹화 파일 등 용량 큰 중간 산출물만 제외합니다.
+*.mp4
+*.mov
+recordings/
