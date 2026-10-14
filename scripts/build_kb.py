@@ -8,8 +8,8 @@ data/install_kb.md  →  data/install_kb.json
 
 ★ 검증에 실패하면 json 을 만들지 않는다
   특히 다운로드 URL · 전화번호가 본문에 다시 들어오면 빌드를 멈춘다.
-  원본 Autodesk 제품 설치 가이드에 작성된 프로그램 설치 URL 57개는 2025-06 발급분이라 이미 만료됐을 가능성이 높다.
-  만료 링크 안내 시 사용자에게 오안내를 하는 것이다.
+  원본 가이드의 서명 URL 57개는 2025-06 발급분이라 이미 만료됐을 가능성이 높다.
+  만료 링크 안내 시 사용자에게 오안내 하는 것이다.
 """
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ from assistant.kb import md_source_hash
 
 PRODUCT_RE = re.compile(r"^##\s+PRODUCT\s*\|\s*(\w+)\s*\|\s*(.+?)\s*$")
 UNSUPPORTED_RE = re.compile(r"^##\s+UNSUPPORTED\s*\|\s*(.+?)\s*$")
+ADDON_RE = re.compile(r"^##\s+ADDON\s*\|\s*(\w+)\s*\|\s*(\w+)\s*$")
 CHUNK_RE = re.compile(r"^##\s+(KB-[A-Z0-9]+-\d{2})\s*\|\s*(\w+)\s*\|\s*([\d,\s]+?)\s*\|\s*(.+?)\s*$")
 SECTION_RE = re.compile(r"^\*\*(.+?)\*\*\s*$")
 
@@ -107,7 +108,7 @@ def parse(md_text: str) -> tuple[dict, list, list[dict]]:
 def build_embed_text(c: dict, aliases: list[str]) -> str:
     """검색 품질을 좌우하는 부분. 본문 + 주의사항 + 예상 질문을 함께 넣는다.
 
-    ★ 예상 질문 넣은 이유
+    ★ 예상 질문을 넣는 이유 (코드잇 스프린트 고급 팀 프로젝트 legal_kb 의 '위반 예시'와 같은 원리)
       사용자는 "오토캐드 깔려면?" 처럼 구어체로 묻는데 본문은 절차 문장이다.
       본문만 넣으면 어휘·임베딩 양쪽에서 거리가 멀어 검색이 안 된다.
     """
@@ -120,6 +121,27 @@ def build_embed_text(c: dict, aliases: list[str]) -> str:
         parts.append("주의사항: " + " / ".join(c["cautions"]))
     parts.append("예상 질문: " + " / ".join(c["questions"]))
     return "\n".join(parts).strip()
+
+
+def parse_addons(md_text: str) -> dict[str, str]:
+    """## ADDON | 부가 제품 | 호스트 제품 선언을 읽는다."""
+    out: dict[str, str] = {}
+    for line in md_text.replace("\r\n", "\n").splitlines():
+        if (m := ADDON_RE.match(line.strip())):
+            out[m.group(1)] = m.group(2)
+    return out
+
+
+def validate_addons(addons: dict[str, str], products: dict) -> list[str]:
+    errs = []
+    for addon, host in addons.items():
+        if addon not in products:
+            errs.append(f"ADDON '{addon}' 이 PRODUCT 선언에 없다")
+        if host not in products:
+            errs.append(f"ADDON '{addon}' 의 호스트 '{host}' 가 PRODUCT 선언에 없다")
+        if addon == host:
+            errs.append(f"ADDON '{addon}' 의 호스트가 자기 자신이다")
+    return errs
 
 
 def validate(products: dict, unsupported: list, chunks: list[dict]) -> list[str]:
@@ -167,7 +189,7 @@ def validate(products: dict, unsupported: list, chunks: list[dict]) -> list[str]
 
 
 def warn_if_index_stale(kb_hash: str) -> None:
-    """KB 를 다시 만들었으면 벡터 인덱스도 다시 만들어야 한다. 만든 직후에 알려주는 편이 효율적이다."""
+    """KB 를 다시 만들었으면 벡터 인덱스도 다시 만들어야 한다. 만든 직후에 알려주는 편이 싸다."""
     if not C.INDEX_META.exists():
         return
     try:
@@ -189,8 +211,9 @@ def main() -> int:
 
     md_text = C.KB_MD.read_text(encoding="utf-8")
     products, unsupported, chunks = parse(md_text)
+    addons = parse_addons(md_text)
 
-    errs = validate(products, unsupported, chunks)
+    errs = validate(products, unsupported, chunks) + validate_addons(addons, products)
     if errs:
         print("❌ install_kb.md 검증 실패:", file=sys.stderr)
         for e in errs:
@@ -206,6 +229,7 @@ def main() -> int:
         "count": len(chunks),
         "products": products,
         "unsupported": unsupported,
+        "addons": addons,
         "chunks": chunks,
     }
 

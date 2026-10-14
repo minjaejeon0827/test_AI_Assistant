@@ -32,14 +32,14 @@ BATCH = 64
 def assert_kb_is_current() -> dict:
     """install_kb.json 이 install_kb.md 의 최신 상태인지 확인하고 json 을 돌려준다.
 
-    ★ 이 검사가 없으면 이전 버전 벡터가 만들어진다
-      md 를 고치고 build_kb.py 를 안 돌린 채 여기를 실행하면 이전 버전 청크로 임베딩하고,
-      meta 에도 이전 버전 해시가 들어가 검색기의 해시 비교를 통과해 버린다.
+    ★ 이 검사가 없으면 조용히 낡은 벡터가 만들어진다
+      md 를 고치고 build_kb.py 를 안 돌린 채 여기를 실행하면 낡은 청크로 임베딩하고,
+      meta 에도 낡은 해시가 들어가 검색기의 해시 비교를 통과해 버린다.
       어느 단계에서도 드러나지 않는 유일한 경로라 여기서 막는다.
 
     ★ 해시는 kb.md_source_hash() 하나로만 계산한다
       빌드 스크립트는 줄바꿈을 변환한 텍스트로, 인덱스 스크립트는 원본 바이트로 해시하면
-      Windows(CRLF)에서 내용이 같아도 "인덱스가 낡았다"는 거짓 오류가 난다.
+      Windows(CRLF)에서 내용이 같아도 "낡았다"는 거짓 오류가 난다.
     """
     if not C.KB_JSON.exists():
         raise SystemExit("❌ install_kb.json 이 없다 → python scripts/build_kb.py 를 먼저 실행하라")
