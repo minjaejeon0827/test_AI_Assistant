@@ -5,14 +5,12 @@ app.py
 변경 이력
 - 2026.09  openai 0.28.1 → 3.x SDK 마이그레이션
            응답 스트리밍, 시스템 프롬프트, 예외 처리, 대화 이력 윈도우 적용
-- 2026.09  Autodesk 제품 설치 가이드 8종 지식 베이스 RAG 연결
+- 2026.09  제품 설치 가이드 8종 지식 베이스 RAG 연결
            근거 게이트 · 상담원 연결 전환, 이력 요약 압축, SQLite 대화 저장, 사용량 상한,
            Chat Completions / Responses API 어댑터, 키 없이 동작하는 추출형 답변 모드
 
 패키지 설치
 - pip install -r requirements.txt
-- pip install openai
-- pip install streamlit
 
 패키지 삭제
 - pip uninstall openai
@@ -50,6 +48,7 @@ app.py
 
 from __future__ import annotations
 
+import copy
 import os
 import tempfile
 import time
@@ -123,12 +122,29 @@ def get_client(api_key: str):
     return st.session_state["_client"]
 
 
+@st.cache_resource(show_spinner="검색 색인을 준비하는 중입니다…")
+def get_base_retriever(_kb) -> Retriever:
+    """키와 무관한 어휘 색인 — 전역으로 한 번만 만든다(형태소 분석기 초기화 약 3초 포함).
+
+    비밀 정보가 없으므로 cache_resource 로 공유해도 안전하다. (_kb: 밑줄 → Streamlit 해시 대상에서 제외)
+    """
+    return Retriever(_kb)
+
+
 def get_retriever(kb, api_key: str) -> Retriever:
-    """키가 있고 벡터 인덱스가 있으면 하이브리드, 아니면 어휘 검색만 쓴다."""
+    """키가 있고 벡터 인덱스가 있으면 하이브리드, 아니면 어휘 검색만 쓴다.
+
+    ★ 키가 얽힌 임베딩 함수는 세션에만 둔다. 전역 색인의 얕은 사본에 붙이므로 색인을 다시 만들지 않는다.
+    """
     tag = "vector" if api_key and C.VECTORS_NPY.exists() else "local"
     if st.session_state.get("_retriever_tag") != (tag, api_key):
-        embedder = make_embedder(api_key) if tag == "vector" else None
-        st.session_state["_retriever"] = Retriever(kb, embedder)
+        base = get_base_retriever(kb)
+        if tag == "vector":
+            retriever = copy.copy(base)
+            retriever.embedder = make_embedder(api_key)
+        else:
+            retriever = base
+        st.session_state["_retriever"] = retriever
         st.session_state["_retriever_tag"] = (tag, api_key)
     return st.session_state["_retriever"]
 
@@ -398,7 +414,9 @@ def render_status(ctx: dict, key_source: str, kb_error: str, store_path: str) ->
             st.error("지식 베이스를 불러오지 못해 모든 문의를 상담원에게 연결합니다.")
         else:
             kb = ctx["kb"]
-            mode = "하이브리드 (어휘 + 벡터)" if ctx["retriever"].mode == "hybrid" else "어휘 검색"
+            r = ctx["retriever"]
+            lex = "형태소 어휘" if r.tokenizer == "kiwi" else "bigram 어휘"
+            mode = f"하이브리드 ({lex} + 벡터)" if r.mode == "hybrid" else f"{lex} 검색"
             st.caption(f"📚 지식 베이스 {len(kb.chunks)}개 문서 · 제품 {len(kb.products)}종 · {mode}")
         if ctx["client"]:
             st.caption(f"🤖 생성형 답변 · {key_source}")

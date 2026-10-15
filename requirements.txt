@@ -9,3 +9,5 @@
 streamlit>=1.40
 openai>=3.0,<4.0
 numpy>=1.26
+# 형태소 분석기 — 없어도 동작한다(bigram 폴백). 모델 파일 포함 약 60MB
+kiwipiepy>=0.20
