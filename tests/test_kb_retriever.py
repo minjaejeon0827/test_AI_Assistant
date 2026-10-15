@@ -24,7 +24,7 @@ def test_kb_json_is_in_sync_with_md(kb):
 
 
 @pytest.mark.parametrize("q, products, unsupported", [
-    ("레빗박스 설치하려면 레빗 먼저 깔아야 하나요?", ["RevitBOX", "Revit"], []),
+    ("레빗박스랑 오토캐드 같이 설치해도 되나요?", ["RevitBOX", "AutoCAD"], []),
     ("캐드박스 인증 방법", ["CADBOX"], []),                 # 캐드박스 ≠ 캐드
     ("지더블유캐드 설치", [], ["지더블유캐드"]),             # 미지원 제품이 '캐드'를 먹는다
     ("오토캐드 LT 설치해 주세요", [], ["오토캐드lt"]),
@@ -36,11 +36,55 @@ def test_longest_alias_wins(kb, q, products, unsupported):
     assert d.unsupported == unsupported
 
 
-def test_versions_synonyms_and_residual(kb):
+def test_versions_synonyms_and_residual(kb, retriever):
     d = detect("오토 캐드 2026 설치", kb)
     assert d.products == ["AutoCAD"] and d.versions == [2026]
-    assert [w for w in d.residual.split(SEP) if w] == ["설치"]
+    assert [u.key or "" for u in retriever.analyze(d.residual).units] in (["설치"], [""])
     assert "라이선스" in detect("시빌 3D 라이센스 인증", kb).residual   # 표기 변이 통일
+
+
+def test_addon_host_is_dropped(kb):
+    """부가 제품과 호스트가 함께 나오면 부가 제품이 주어다 (test v1 오답 원인 C)."""
+    assert detect("레빗박스 설치하려면 레빗 먼저 깔아야 하나요?", kb).products == ["RevitBOX"]
+    assert detect("캐드박스 설치하면 캐드에서 바로 쓰나요?", kb).products == ["CADBOX"]
+    assert detect("오토캐드랑 레빗 둘 다 설치", kb).products == ["AutoCAD", "Revit"]   # 호스트 관계 아님
+
+
+@pytest.mark.parametrize("q, tokens", [
+    ("인프라웍스 받으려면 어떻게 해야 돼요", ("받",)),             # 어미·경동사·의문 부사 제거 (test v1 원인 A)
+    ("레빗 2023 버전 수동 설치파일은 몇 개예요?", ("버전", "수동", "설치", "파일")),
+    ("c3d 수동설치 파일 부탁드려요", ("수동", "설치", "파일")),
+    ("레빗은요?", ()),                                          # 제품명 지운 자리의 조사가 명사로 남지 않는다
+    ("에너지박스는 뭘로 켜야 돼요", ("실행",)),                    # 어간 동의어
+])
+def test_morph_keeps_content_words_only(kb, retriever, q, tokens):
+    if retriever.tokenizer != "kiwi":
+        pytest.skip("kiwipiepy 미설치")
+    assert tuple(u.key for u in retriever.analyze(detect(q, kb).residual).units) == tokens
+
+
+def test_deictic_is_flagged_not_scored(kb, retriever):
+    q = retriever.analyze(detect("시빌3D도 마찬가지인가요?", kb).residual)
+    assert q.deictic and q.empty
+
+
+def test_ascii_tokens_need_exact_match(kb, retriever):
+    """'manage' 가 'manager'(Identity Manager)에 부분 일치하면 라이선스 문서와 동점이 된다 (G-025)."""
+    if retriever.tokenizer != "kiwi":
+        pytest.skip("kiwipiepy 미설치")
+    from assistant.retriever import Unit
+    u = Unit("manage", frozenset({"ma", "an", "na", "ag", "ge"}))
+    assert retriever.match(u, "KB-RVT-01") == 1.0      # manage.autodesk.com
+    assert retriever.match(u, "KB-RVT-04") == 0.0      # Identity Manager
+
+
+def test_bigram_fallback_uses_its_own_thresholds(kb, monkeypatch):
+    monkeypatch.setattr(C, "TOKENIZER", "bigram")
+    r = Retriever(kb)
+    assert r.tokenizer == "bigram"
+    d = detect("오토캐드 라이센스 등록하는 법 좀", kb)
+    res = r.search("", d.residual, [c for c in kb.chunks if c.product == "AutoCAD"])
+    assert res.tokenizer == "bigram" and res.top.chunk.id == "KB-ACAD-04" and res.passes_gate(anchored=True)
 
 
 def test_render_links_without_local_file():

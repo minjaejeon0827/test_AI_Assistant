@@ -1,4 +1,4 @@
-"""LLM 모델 어댑터 · 이력 요약 · 저장소 · 사용량 상한"""
+"""LLM 어댑터 · 이력 요약 · 저장소 · 사용량 상한"""
 
 from __future__ import annotations
 
@@ -123,7 +123,7 @@ def test_store_roundtrip_usage_and_delete(tmp_path):
     assert s.load_state(cid)["active_product"] == "AutoCAD"
 
     s.log_usage(cid, kind="answer", backend="chat", prompt_tokens=100, completion_tokens=20)
-    s.log_usage(cid, kind="answer", backend="extractive")          # LLM 모델 미사용은 세지 않는다
+    s.log_usage(cid, kind="answer", backend="extractive")          # LLM 미사용은 세지 않는다
     assert s.usage_totals(cid) == (1, 120) and s.daily_calls() == 1
 
     s.record_handoff(cid, "low_relevance", "질문")
