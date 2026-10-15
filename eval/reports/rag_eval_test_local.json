@@ -1,13 +1,13 @@
 {
  "conditions": {
-  "kb_sha256": "562f5becf759d375",
+  "kb_sha256": "c5c04a85285e2058",
   "mode": "local",
   "chunks": 26,
   "split": "test",
-  "golden_sha256": "c34ca3269f45bb8a",
+  "golden_sha256": "efe5c7f96e89e69f",
   "min_lexical": 0.45,
   "min_lexical_unanchored": 0.63,
-  "run_at": "2026-09-22T08:55:43+00:00"
+  "run_at": "2026-10-09T08:57:50+00:00"
  },
  "metrics": {
   "n": 40,
@@ -24,8 +24,8 @@
   "over_block": 0,
   "reason_accuracy": 1.0,
   "product_accuracy": 1.0,
-  "latency_p50_ms": 0.21,
-  "latency_p95_ms": 0.39
+  "latency_p50_ms": 0.25,
+  "latency_p95_ms": 0.45
  },
  "targets_met": {
   "under_handoff": true,
@@ -60,7 +60,7 @@
    "lexical": 1.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.39
+   "latency_ms": 0.51
   },
   {
    "id": "G-025",
@@ -86,7 +86,7 @@
    "lexical": 0.5547,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.32
+   "latency_ms": 0.39
   },
   {
    "id": "G-026",
@@ -112,7 +112,7 @@
    "lexical": 0.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.21
+   "latency_ms": 0.19
   },
   {
    "id": "G-027",
@@ -138,7 +138,7 @@
    "lexical": 1.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.19
+   "latency_ms": 0.25
   },
   {
    "id": "G-028",
@@ -164,7 +164,7 @@
    "lexical": 0.505,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.3
+   "latency_ms": 0.26
   },
   {
    "id": "G-029",
@@ -190,7 +190,7 @@
    "lexical": 0.4535,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.19
+   "latency_ms": 0.29
   },
   {
    "id": "G-030",
@@ -216,7 +216,7 @@
    "lexical": 0.4342,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.28
+   "latency_ms": 0.3
   },
   {
    "id": "G-031",
@@ -242,7 +242,7 @@
    "lexical": 0.6981,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.33
+   "latency_ms": 0.35
   },
   {
    "id": "G-032",
@@ -266,7 +266,7 @@
    "lexical": 0.3821,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.29
+   "latency_ms": 0.36
   },
   {
    "id": "G-033",
@@ -292,7 +292,7 @@
    "lexical": 1.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.27
+   "latency_ms": 0.32
   },
   {
    "id": "G-034",
@@ -317,7 +317,7 @@
    "lexical": 0.2248,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.21
+   "latency_ms": 0.26
   },
   {
    "id": "G-035",
@@ -342,7 +342,7 @@
    "lexical": 0.3395,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.23
+   "latency_ms": 0.28
   },
   {
    "id": "G-036",
@@ -367,7 +367,7 @@
    "lexical": 0.6017,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.23
+   "latency_ms": 0.24
   },
   {
    "id": "G-037",
@@ -392,7 +392,7 @@
    "lexical": 1.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.2
+   "latency_ms": 0.25
   },
   {
    "id": "G-038",
@@ -417,7 +417,7 @@
    "lexical": 0.7361,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.3
+   "latency_ms": 0.24
   },
   {
    "id": "G-039",
@@ -444,7 +444,7 @@
    "lexical": 0.0544,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.22
+   "latency_ms": 0.28
   },
   {
    "id": "G-040",
@@ -469,7 +469,7 @@
    "lexical": 1.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.14
+   "latency_ms": 0.12
   },
   {
    "id": "G-041",
@@ -495,7 +495,7 @@
    "lexical": 0.5878,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.14
+   "latency_ms": 0.16
   },
   {
    "id": "G-042",
@@ -520,7 +520,7 @@
    "lexical": 1.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.12
+   "latency_ms": 0.1
   },
   {
    "id": "G-043",
@@ -546,7 +546,7 @@
    "lexical": 0.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.17
+   "latency_ms": 0.13
   },
   {
    "id": "G-044",
@@ -573,7 +573,7 @@
    "lexical": 0.6755,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.41
+   "latency_ms": 0.45
   },
   {
    "id": "G-045",
@@ -601,7 +601,7 @@
    "lexical": 0.6724,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.39
+   "latency_ms": 0.45
   },
   {
    "id": "G-046",
@@ -627,7 +627,7 @@
    "lexical": 0.5695,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.29
+   "latency_ms": 0.34
   },
   {
    "id": "G-047",
@@ -653,7 +653,7 @@
    "lexical": 1.0,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.17
+   "latency_ms": 0.22
   },
   {
    "id": "G-048",
@@ -679,7 +679,7 @@
    "lexical": 0.2327,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.21
+   "latency_ms": 0.18
   },
   {
    "id": "G-049",
@@ -697,7 +697,7 @@
    "lexical": 0.0,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.12
+   "latency_ms": 0.18
   },
   {
    "id": "G-050",
@@ -715,7 +715,7 @@
    "lexical": 0.0,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.11
+   "latency_ms": 0.13
   },
   {
    "id": "G-051",
@@ -735,7 +735,7 @@
    "lexical": 0.0,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.08
+   "latency_ms": 0.1
   },
   {
    "id": "G-052",
@@ -755,7 +755,7 @@
    "lexical": 0.0,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.11
+   "latency_ms": 0.1
   },
   {
    "id": "G-053",
@@ -779,7 +779,7 @@
    "lexical": 0.0065,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.18
+   "latency_ms": 0.19
   },
   {
    "id": "G-054",
@@ -827,7 +827,7 @@
    "lexical": 0.2343,
    "anchored": true,
    "needs_clarify": false,
-   "latency_ms": 0.21
+   "latency_ms": 0.22
   },
   {
    "id": "G-056",
@@ -849,7 +849,7 @@
    "lexical": 0.1554,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.22
+   "latency_ms": 0.34
   },
   {
    "id": "G-057",
@@ -871,7 +871,7 @@
    "lexical": 0.0,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.24
+   "latency_ms": 0.3
   },
   {
    "id": "G-058",
@@ -889,7 +889,7 @@
    "lexical": 0.0,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.01
+   "latency_ms": 0.02
   },
   {
    "id": "G-059",
@@ -911,7 +911,7 @@
    "lexical": 0.2663,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.19
+   "latency_ms": 0.27
   },
   {
    "id": "G-060",
@@ -951,7 +951,7 @@
    "lexical": 0.3817,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.36
+   "latency_ms": 0.38
   },
   {
    "id": "G-062",
@@ -979,7 +979,7 @@
    "lexical": 0.2401,
    "anchored": false,
    "needs_clarify": false,
-   "latency_ms": 0.4
+   "latency_ms": 0.43
   },
   {
    "id": "G-063",
