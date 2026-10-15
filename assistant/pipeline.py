@@ -50,6 +50,7 @@ _HANDOFF_HEAD = {
     "low_relevance": "문의하신 내용과 일치하는 설치 안내 자료를 찾지 못했습니다.",
     "kb_unavailable": "지금은 설치 안내 자료를 불러올 수 없습니다.",
     "llm_declined": "안내 자료만으로는 정확히 답변드리기 어려운 문의입니다.",
+    "unsupported_problem": "문의하신 문제 상황(분실 · 오류 · 삭제 등)은 설치 안내 자료에 없는 내용입니다.",
     "invalid_citation": "답변의 근거를 확인하지 못해 안내를 중단했습니다.",
 }
 
@@ -80,6 +81,7 @@ class Decision:
     versions: list[int] = field(default_factory=list)
     anchored: bool = False              # 제품이 특정됐는가(질문 또는 직전 대화)
     contextual: bool = False            # 직전 대화의 제품을 이어받았는가
+    inherited: bool = False             # 직전 질문의 주제를 이어받았는가 (제품·버전 전환 · 지시어)
     ambiguous: bool = False             # 제품 미지정인데 여러 제품 문서가 후보다
     needs_clarify: bool = False         # 제품만 말했다 → 첫 단계를 안내하고 되묻는다
     mode: str = "local"
@@ -109,6 +111,11 @@ def _smalltalk_reply(question: str) -> str:
     if s.startswith(("감사", "고마", "thank", "수고")):
         return "도움이 되었다니 다행입니다. 다른 Autodesk 제품 설치 문의가 있으면 편하게 말씀해 주세요."
     return "안녕하세요. Autodesk 제품 설치와 관련해 어떤 도움이 필요하신가요?"
+
+
+def _topic_text(residual: str) -> str:
+    """잔여 문장에서 자리표시자·구분자를 걷어낸 주제 문장 ("qqq|라이선스|인증은요" → "라이선스 인증은요")."""
+    return " ".join(w for w in residual.replace(C.MORPH_PLACEHOLDER, " ").replace("|", " ").split())
 
 
 def handoff_message(reason: str, detail: str = "") -> str:
@@ -151,13 +158,10 @@ def decide(question: str, state: ConversationState, kb: KnowledgeBase,
     new = ConversationState(state.active_product, list(state.active_versions), state.last_residual)
     products, versions, residual = list(det.products), list(det.versions), det.residual
     contextual = False
-    empty = not retriever.query_words(residual)
+    query = retriever.analyze(residual)
 
     if det.products:
         new.active_product, new.active_versions = det.products[0], list(det.versions)
-        # "레빗은요?" — 제품만 바꿔 같은 주제를 다시 묻는 경우 직전 질문의 주제를 이어받는다
-        if empty and state.last_residual and det.products[0] != state.active_product:
-            residual, empty = state.last_residual, False
     elif state.active_product and not det.unsupported:
         products, contextual = [state.active_product], True
         if versions:
@@ -165,7 +169,21 @@ def decide(question: str, state: ConversationState, kb: KnowledgeBase,
         else:
             versions = list(state.active_versions)
 
-    common = {"products": products, "versions": versions, "contextual": contextual}
+    # ── 직전 주제 승계 ───────────────────────────────────────────────────────
+    # 질문에 주제어가 없고 아래 셋 중 하나면 직전 질문의 주제를 이어받는다.
+    #   제품 전환  "레빗은요?"              (오토캐드 라이선스 → 레빗 라이선스)
+    #   버전 전환  "2025 는요?"            (같은 제품, 다른 버전)
+    #   지시어     "시빌3D도 마찬가지인가요?" (마찬가지 · 똑같 · 동일)
+    # 주제어가 하나라도 있으면 이어받지 않는다 — 새 질문으로 본다.
+    switched_product = bool(det.products) and det.products[0] != state.active_product
+    switched_version = bool(det.versions) and det.versions != state.active_versions
+    inherited = False
+    if query.empty and state.last_residual and (switched_product or switched_version or query.deictic):
+        residual, inherited = state.last_residual, True
+        query = retriever.analyze(residual)
+    empty = query.empty
+
+    common = {"products": products, "versions": versions, "contextual": contextual, "inherited": inherited}
 
     # ── 범위 게이트: 지식 베이스에 없는 제품 · 버전 ──────────────────────────────
     if det.unsupported and not det.products:
@@ -184,6 +202,11 @@ def decide(question: str, state: ConversationState, kb: KnowledgeBase,
     anchored = bool(products)
     common["anchored"] = anchored
 
+    # ── 문제 상황 게이트: 절차 문서와 단어가 겹쳐도 문제 상황은 답하지 않는다 ──────
+    if (problem := retriever.uncovered_problem(query, residual)):
+        return done(Decision("handoff", "unsupported_problem", handoff_message("unsupported_problem"),
+                             **common), new)
+
     # ── 되묻기: 제품만 말했거나, 제품 없이 일반 용어만 있다 ──────────────────────
     if empty:
         if det.products:   # "오토캐드요" → 첫 단계를 안내하고 어느 단계인지 되묻는다
@@ -193,18 +216,20 @@ def decide(question: str, state: ConversationState, kb: KnowledgeBase,
         return done(Decision("clarify", "empty_query", _clarify_message(kb, new.active_product
                                                                          if contextual else None),
                              **common), new)
-    words = retriever.query_words(residual)
-    if not anchored and retriever.is_generic(words):
+    if not anchored and retriever.is_generic(query.units):
         return done(Decision("clarify", "no_product", _clarify_message(kb, None), **common), new)
 
     # ── 검색 + 근거 게이트 ─────────────────────────────────────────────────────
-    res = retriever.search(question, residual, candidates)
+    # 벡터 검색에 넣을 문장 — 주제를 이어받았으면 "레빗은요?" 대신 "Revit 라이선스 인증" 으로 묻는다
+    embed_text = f"{' '.join(products)} {_topic_text(residual)}" if inherited else question
+    res = retriever.search(embed_text, residual, candidates, query=query)
     common.update(mode=res.mode, gate_lexical=res.gate_lexical, gate_vector=res.gate_vector)
     if not res.passes_gate(anchored):
         # 버전을 빼고 다시 찾았을 때 근거가 있다면 "주제는 있는데 그 버전 자료가 없는" 경우다.
         # 사유를 구분해야 "2024 라이선스 인증" 문의에 어느 버전 자료가 있는지 알려줄 수 있다.
         if versions and products:
-            wide = retriever.search(question, residual, [c for c in kb.chunks if c.product in products])
+            wide = retriever.search(embed_text, residual, [c for c in kb.chunks if c.product in products],
+                                    query=query)
             if wide.passes_gate(anchored):
                 top = wide.top.chunk
                 detail = f" ({top.title} 안내는 {top.version_label} 버전 기준입니다)"
@@ -246,6 +271,8 @@ def build_prompt(question: str, decision: Decision, history: list[dict], summary
         notes.append("질문에 제품명이 없습니다. 안내 후 사용 중인 Autodesk 제품을 물어보세요.")
     if decision.contextual and decision.products:
         notes.append(f"질문에 제품명이 없어 직전 대화의 Autodesk 제품({decision.products[0]}) 기준으로 검색했습니다.")
+    if decision.inherited:
+        notes.append("고객이 주제를 생략했습니다(예: '레빗은요?', '마찬가지인가요?'). 직전 질문과 같은 주제로 검색했습니다.")
     if decision.needs_clarify:
         notes.append("고객이 제품명만 말했습니다. 첫 단계를 안내한 뒤 어느 단계가 궁금한지 물어보세요.")
 
@@ -270,6 +297,8 @@ def extractive_answer(decision: Decision, links: dict[str, str]) -> tuple[str, s
     if decision.ambiguous:
         lines.append(f"제품명이 없어 **{c.product}** 기준으로 안내드립니다. "
                      "사용 중인 Autodesk 제품을 알려주시면 해당 제품 기준으로 다시 안내드리겠습니다.\n")
+    elif decision.inherited:
+        lines.append(f"직전 질문과 같은 내용을 **{c.product}** 기준으로 안내드립니다.\n")
     elif decision.contextual:
         lines.append(f"직전에 말씀하신 **{c.product}** 기준으로 안내드립니다.\n")
     lines.append(f"**{c.title}** (적용 버전: {c.version_label})\n")

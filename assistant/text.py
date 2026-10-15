@@ -43,12 +43,43 @@ def squeeze(text: str) -> str:
     return _NON_WORD.sub("", normalize(text).replace(SEP, " "))
 
 
+def _bigram_mode() -> bool:
+    from . import morph   # 지연 import — morph 는 config 만 의존하므로 순환이 없다
+    return not morph.available()
+
+
+def _has_batchim(ch: str) -> bool | None:
+    if "가" <= ch <= "힣":
+        return (ord(ch) - 0xAC00) % 28 != 0
+    return None
+
+
+def raw_synonym_ok(variant: str, standard: str) -> bool:
+    """원문에서 바꿔도 조사가 깨지지 않는 쌍인가 — 둘 다 한글로 끝나고 받침 유무가 같아야 한다.
+
+    "활성화는" → "인증는" 처럼 받침이 달라지면 형태소 분석기가 문장을 잘못 읽는다(T2-014).
+    """
+    a, b = _has_batchim(variant[-1]), _has_batchim(standard[-1])
+    return a is not None and a == b
+
+
 def _standardize(text: str) -> str:
+    """표기 변이를 통일한다.
+
+    ★ 활용형 치환(깔→설치, 바꿔→바꾸)은 bigram 모드에서만 한다.
+      형태소 모드에서 원문을 바꾸면 "켜야" → "실행야" 처럼 분석기가 읽을 수 없는 문장이 된다.
+      형태소 모드는 어간 단위 동의어(config.MORPH_SYNONYMS)로 같은 일을 한다.
+    """
     s = normalize(text)
+    bigram = _bigram_mode()
     for variant, standard in C.SYNONYMS:
-        s = s.replace(variant, standard)
-    for pattern, standard in _STEM_RULES:
-        s = pattern.sub(standard, s)
+        if bigram or raw_synonym_ok(variant, standard):   # 형태소 모드: 나머지는 어간 단위(MORPH_SYNONYMS)
+            s = s.replace(variant, standard)
+    if bigram:
+        for variant, standard in C.SYNONYMS_BIGRAM_ONLY:
+            s = s.replace(variant, standard)
+        for pattern, standard in _STEM_RULES:
+            s = pattern.sub(standard, s)
     return s
 
 

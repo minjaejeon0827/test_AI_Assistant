@@ -61,6 +61,7 @@ class KnowledgeBase:
     products: dict[str, tuple[str, ...]]   # 제품 키 → 표준형 별칭
     unsupported: tuple[str, ...]           # 표준형 별칭
     source_sha256: str
+    addons: dict[str, str] = field(default_factory=dict)   # 부가 제품 → 호스트 제품
     _by_id: dict[str, Chunk] = field(default_factory=dict, repr=False)
 
     def __post_init__(self) -> None:
@@ -114,7 +115,7 @@ def _parse(data: dict) -> KnowledgeBase:
     )
     products = {k: tuple(canonical(a) for a in v) for k, v in data["products"].items()}
     unsupported = tuple(canonical(a) for a in data.get("unsupported", []))
-    return KnowledgeBase(chunks, products, unsupported, data["source_sha256"])
+    return KnowledgeBase(chunks, products, unsupported, data["source_sha256"], dict(data.get("addons", {})))
 
 
 @lru_cache(maxsize=4)
@@ -160,11 +161,13 @@ def detect(question: str, kb: KnowledgeBase) -> Detection:
     spaced = list(canonical_words(question))
     pos = [i for i, ch in enumerate(spaced) if ch != SEP]   # 압축 문자열 위치 → 원래 위치
     squeezed = [spaced[i] for i in pos]
+    masked = [False] * len(spaced)
 
     def mask(start: int, length: int) -> None:
         for j in range(start, start + length):
             squeezed[j] = SEP                # 짧은 별칭이 이 자리를 다시 못 쓰게 가린다
             spaced[pos[j]] = SEP             # 관련도 계산에서도 제품명을 뺀다
+            masked[pos[j]] = True
 
     found: list[tuple[int, str]] = []
     unsupported: list[str] = []
@@ -186,7 +189,31 @@ def detect(question: str, kb: KnowledgeBase) -> Detection:
         mask(m.start(), 4)
 
     products = list(dict.fromkeys(key for _, key in sorted(found)))
-    return Detection(products, unsupported, sorted(versions), "".join(spaced))
+    # 부가 제품과 그 호스트가 함께 나오면 부가 제품이 주어다 — 호스트는 실행 환경일 뿐이다.
+    #   "캐드박스 설치하면 캐드에서 바로 쓰나요?" → CADBOX 만 남긴다.
+    hosts = {kb.addons[p] for p in products if p in kb.addons}
+    products = [p for p in products if p not in hosts] or products
+    return Detection(products, unsupported, sorted(versions), _residual(spaced, masked))
+
+
+def _residual(spaced: list[str], masked: list[bool]) -> str:
+    """제품명·버전을 지운 나머지 문장.
+
+    bigram 모드: 지운 자리를 구분자(|)로 둔다 — 앞뒤 글자가 붙어 가짜 bigram 이 생기지 않게.
+    형태소 모드: 지운 자리를 자리표시자로 바꾼다 — "레빗은요" 의 '은' 이 조사로 분석되게.
+    """
+    from . import morph
+
+    if not morph.available():
+        return "".join(spaced)
+    out: list[str] = []
+    for i, ch in enumerate(spaced):
+        if masked[i]:
+            if i == 0 or not masked[i - 1]:
+                out.append(C.MORPH_PLACEHOLDER)
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 # endregion 제품·버전 감지
