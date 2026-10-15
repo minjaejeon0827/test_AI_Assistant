@@ -1,5 +1,5 @@
 {
-  "source_sha256": "562f5becf759d3751c19d605c5db22e9bfbb3211692f288ff0a2f9646135abdc",
+  "source_sha256": "31adc148f9185145870eb2026b6dbcb05ec01b5ebd0945202113b7ded56d4650",
   "count": 26,
   "products": {
     "AutoCAD": [
@@ -84,6 +84,11 @@
     "office 365",
     "오피스365"
   ],
+  "addons": {
+    "CADBOX": "AutoCAD",
+    "EnergyBOX": "AutoCAD",
+    "RevitBOX": "Revit"
+  },
   "chunks": [
     {
       "id": "KB-ACAD-01",
