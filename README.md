@@ -447,8 +447,8 @@ python scripts/eval_rag.py --generate        # LLM 모델 생성까지 평가 (�
 - [RAG 평가 보고서](docs/evaluation.md)
 - [실행 런북 — 벡터 게이트 · 생성 평가 보고서](docs/runbook_vector_generate.md)
 - [트러블슈팅 · 의사결정 기록](docs/troubleshooting.md)
-- [벡터 검색 평가 보고서](eval/reports/rag_vector_tune.md)
-- [생성 평가 보고서](eval/reports/rag_generate_tune.md)
+- [벡터 검색 평가 — tune](eval/reports/rag_vector_tune.md)
+- [생성 평가 — tune](eval/reports/rag_generate_tune.md)
 
 ---
 
