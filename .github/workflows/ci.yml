@@ -1,0 +1,19 @@
+# 푸시·PR 마다 지식 베이스 동기화 · 테스트 · 골든 데이터셋 평가를 돌린다. API 키가 필요 없다.
+name: ci
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - name: 지식 베이스 md ↔ json 동기화 확인
+        run: python scripts/build_kb.py --check
+      - name: 단위 · 통합(AppTest) · 골든 데이터셋 안전 지표 회귀 테스트
+        run: pytest
+      - name: 골든 데이터셋 평가 보고서 (목표 미달이어도 빌드를 막지 않는다 — 안전 지표는 pytest 가 막는다)
+        run: python scripts/eval_rag.py --split test
