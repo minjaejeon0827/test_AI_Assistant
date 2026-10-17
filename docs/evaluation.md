@@ -176,15 +176,19 @@ pytest                                      # 단위 · AppTest 통합 · 골든
 | 벡터 인덱스 + 벡터 게이트 스윕 | ⏳ 도구 · 판정 규칙 완성, **측정 미실시** | 런북 2.1 · 2.2 |
 | Chat Completions vs Responses 생성 평가 | ⏳ 도구 · 판정 규칙 완성, **측정 미실시** | 런북 2.3 |
 
-개발 환경에서 OpenAI API에 접속할 수 없어 벡터·생성 평가는 측정하지 못했다.
+AI 도구(Claude)를 활용하는 것만으로는 OpenAI API에 접근할 수 없어 벡터·생성 평가는 측정하지 못했다.
+하여 해당 벡터·생성 평가는 개발자가 직접 해야 한다. 
 **판정 규칙을 측정 전에 코드로 고정**했으므로(`eval_rag.py` 의 `HYBRID_ADOPT_RULE` · `recommend_vector` · `BACKEND_SWITCH_RULE`)
-런북대로 실행하면 결론이 자동으로 나온다. 실행 후 아래 표를 채운다.
+런북대로 실행하면 결론이 자동으로 나온다. 실행 후 아래 벡터·생성 평가 결과표를 작성했다.
 
+### 벡터·생성 평가 결과표
 | 항목 | 값 | 판정 | 근거 보고서 |
 |---|---|---|---|
-| 하이브리드 순위 채택 | Hit@1 local __ → hybrid __ · wrong-answer __ → __ | | `rag_vector_tune.md` |
-| 벡터 게이트 | OUT 최고 코사인 __ · 구제 __건 · 임계값 __ | | `rag_vector_tune.md` |
-| 기본 백엔드 | 정답 인용률 chat __ / responses __ · p95 __ / __ ms | | `rag_generate_tune.md` |
+| 하이브리드 순위 채택 | Hit@1 local 0.944 → hybrid 0.944 · wrong-answer local 2 → hybrid 2 | 채택 | `rag_vector_tune.md` |
+| 벡터 게이트 | 넘길 문항 OUT 최고 코사인 0.466 보다 높은 구제 대상이 없다 | 끔 | `rag_vector_tune.md` |
+| 기본 백엔드 | 정답 문서 인용률 chat 0.939 / responses 0.969 · p95 chat 2843 ms / responses 2626 ms | responses | `rag_generate_tune.md` |
+| test2 (확정 설정) | under_handoff 0 · wrong_answer 3 · Hit@1 0.919 · over_handoff_rate(과잉 전환) 0.108 | - | `rag_eval_test2_*_final_hybrid.md` |
+| test2 생성 평가 | 정답 문서 인용률 0.935 · 1위 오답 복구 3건 | - | `rag_generate_test2.md` |
 
 ---
 
@@ -375,12 +379,12 @@ kiwipiepy 가 없으면 자동으로 bigram 으로 내려간다. 두 방식은 �
 ## 18. 실행 방법 (2라운드)
 
 ```bash
-python scripts/eval_rag.py                          # tune 분할 (dev + 퇴역 test v1)
-python scripts/eval_rag.py --sweep                  # 임계값 스윕 (tune)
-python scripts/eval_rag.py --explain G-025          # 문항별 단위 분해
-python scripts/eval_rag.py --split test2 --label X  # 봉인 분할 — 실행이 기록된다
+python scripts/eval_rag.py                              # tune 분할 (dev + 퇴역 test v1)
+python scripts/eval_rag.py --sweep                      # 임계값 스윕 (tune)
+python scripts/eval_rag.py --explain G-025              # 문항별 단위 분해
+python scripts/eval_rag.py --split test2 --label X      # 봉인 분할 — 실행이 기록된다
 ASSISTANT_TOKENIZER=bigram python scripts/eval_rag.py   # bigram 폴백 경로
-python scripts/eval_rag.py --vector                 # 벡터 평가 (키 필요 · 런북)
-python scripts/eval_rag.py --generate --backend both    # 생성 평가 (키 필요 · 런북)
-pytest                                              # 91개 · 키 불필요
+python scripts/eval_rag.py --vector                     # 벡터 평가 (키 필요 · 런북)
+python scripts/eval_rag.py --generate --backend both    # 생성 평가 (키 필요 · 런북) → backend_decision.json
+pytest                                                  # 108개 · 키 불필요
 ```
