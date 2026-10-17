@@ -11,7 +11,7 @@
 | over_block | 0 | == 0 | ✅ |
 | block_recall | 1.000 | >= 1.0 | ✅ |
 | hit_at_1 | 0.919 | >= 0.8 | ✅ |
-| over_handoff_rate | 0.108 | <= 0.25 | ✅ |
+| over_handoff_rate(과잉 전환) | 0.108 | <= 0.25 | ✅ |
 
 ## 문체별 정답 답변률
 
