@@ -14,16 +14,23 @@ import os
 from pathlib import Path
 
 
-def _load_dotenv() -> None:
+def _load_dotenv(env_path: Path | None = None) -> None:
     """프로젝트 루트 .env 를 프로세스 환경에 올린다. (python-dotenv 의존성 없이)
 
     ★ os.getenv 는 셸 환경 변수만 본다. .env 에 적어도 아무도 읽지 않으면 기본값이 쓰인다.
       이미 셸에 설정된 값은 덮어쓰지 않는다 — 일회성 실행(평가 스윕 등)이 우선이다.
     """
-    env_path = Path(__file__).resolve().parent.parent / ".env"
+    env_path = env_path or Path(__file__).resolve().parent.parent / ".env"
     if not env_path.exists():
         return
-    for line in env_path.read_text(encoding="utf-8").splitlines():
+    # ★ Windows 메모장은 UTF-8(BOM) 또는 ANSI(cp949)로 저장한다. 어느 쪽이든 읽는다(TS-04).
+    #   UTF-8 로만 읽으면 cp949 로 저장된 한글 주석 한 줄 때문에 앱이 import 단계에서 멈춘다.
+    raw = env_path.read_bytes()
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = raw.decode("cp949", errors="replace")
+    for line in text.splitlines():
         line = line.strip()
         if not line or line.startswith("#") or "=" not in line:
             continue

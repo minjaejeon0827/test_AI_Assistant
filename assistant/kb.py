@@ -95,6 +95,10 @@ def md_source_hash(path: Path | None = None) -> str:
     import hashlib
 
     raw = (path or C.KB_MD).read_bytes().replace(b"\r\n", b"\n")
+    # ★ UTF-8 BOM 도 무시한다 — Windows 메모장 등이 저장할 때 붙이는 3바이트(EF BB BF)다.
+    #   내용이 같은데 BOM 하나로 "md 가 json 보다 최신"이라는 거짓 실패가 나지 않게 한다(TS-02).
+    if raw.startswith(b"\xef\xbb\xbf"):
+        raw = raw[3:]
     return hashlib.sha256(raw).hexdigest()
 
 
