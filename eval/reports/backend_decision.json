@@ -1,0 +1,20 @@
+{
+ "backend": "responses",
+ "checks": [
+  "✅ under_handoff 0 ≤ 0",
+  "✅ wrong_cite 0 ≤ 0",
+  "✅ 정답 인용률 0.969 ≥ 0.939-0.02",
+  "✅ p95 2626ms ≤ 2843ms × 1.2"
+ ],
+ "split": "tune",
+ "decided_at": "2026-10-17T08:23:26+00:00",
+ "model": "gpt-5.6-terra",
+ "code": "3163dd6c84d9",
+ "n": 63,
+ "rule": {
+  "under_handoff_not_higher": true,
+  "wrong_cite_not_higher": true,
+  "cited_correct_rate_min_delta": -0.02,
+  "latency_p95_max_ratio": 1.2
+ }
+}
