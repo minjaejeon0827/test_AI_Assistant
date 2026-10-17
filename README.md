@@ -343,15 +343,18 @@ git clone https://github.com/minjaejeon0827/test_AI_Assistant.git
 cd test_AI_Assistant
 
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+source .venv/bin/activate      # Windows Git Bash: source .venv/Scripts/activate
 
+python -m pip install --upgrade pip   # pip 23 이하는 Windows 에서 requirements 를 cp949 로 읽는다
 pip install -r requirements.txt
+git config core.hooksPath .githooks   # md 만 고치고 json 을 빼먹은 커밋을 막는다 (1회)
 streamlit run app.py
 ```
 
 키가 없으면 **추출형 답변**(근거 문서 원문 안내)으로 동작한다. 사이드바에 [OpenAI API 키](https://platform.openai.com/api-keys)를 넣으면 **생성형 답변**으로 바뀐다.
-배포 시 사용자에게 키를 요구하지 않으려면 `.env.example` 을 `.env` 로 복사해 `OPENAI_API_KEY` 를 넣는다. 이때 사용량 상한이 배포자 키를 보호한다.
+배포 시 방문자에게 키를 요구하지 않으려면 `.env.example` 을 `.env` 로 복사해 `OPENAI_API_KEY` 를 넣는다. 이때 사용량 상한이 배포자 키를 보호한다.
 
+> Windows(Git Bash)에서 설치·테스트 오류가 나면 [`docs/troubleshooting.md`](docs/troubleshooting.md) 를 먼저 본다.
 > 이전 버전(`openai` 0.28.x)이 설치되어 있다면 먼저 제거한다: `pip uninstall openai -y && pip install -r requirements.txt`
 
 ### 2. 지식 베이스 수정
