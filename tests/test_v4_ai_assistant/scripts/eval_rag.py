@@ -1,6 +1,6 @@
 """
 scripts/eval_rag.py
-골든셋으로 RAG 파이프라인을 평가한다.
+골든 데이터셋으로 RAG 파이프라인을 평가한다.
 
 실행:
     python scripts/eval_rag.py                          # tune 분할(dev + 퇴역 test v1) · 키 불필요
@@ -13,7 +13,7 @@ scripts/eval_rag.py
 
 ★ 평가 원칙 (팀 프로젝트 골든 데이터셋 기준 문서 §1.4 · §1.5 를 따른다)
   1. 재현성 — 판정·검색 평가는 LLM 을 부르지 않는다. 같은 입력이면 같은 점수다.
-  2. 평가 오염 차단 — 골든 문항이 지식 베이스 '예상 질문'이나 다른 분할 문항과 거의 같으면
+  2. 평가 오염 차단 — 골든 데이터셋 문항이 지식 베이스 '예상 질문'이나 다른 분할 문항과 거의 같으면
      검색이 문장을 외워서 맞힌다. 겹침이 있으면 평가를 시작하지 않는다.
   3. 튜닝 / 측정 분리 — 임계값은 tune 분할에서만 고른다. 성능은 봉인된 test2 로만 보고한다.
 
@@ -84,7 +84,7 @@ BACKEND_SWITCH_RULE = {
 }
 
 
-# region 골든셋
+# region 골든 데이터셋
 
 
 def _hash(path: Path) -> str:
@@ -177,7 +177,7 @@ def log_test2_run(label: str, cond: dict, m: dict) -> int:
     return len(prev) + 1
 
 
-# endregion 골든셋
+# endregion 골든 데이터셋
 
 # region 실행 · 지표
 
@@ -687,11 +687,11 @@ def main(argv: list[str] | None = None) -> int:
     items, golden_hash = load_golden()
     errs = validate_golden(items, kb)
     if errs:
-        print("❌ 골든셋 검증 실패:", *errs, sep="\n   - ")
+        print("❌ 골든 데이터셋 검증 실패:", *errs, sep="\n   - ")
         return 2
 
     print("━" * 72)
-    print("  RAG 골든셋 평가")
+    print("  RAG 골든 데이터셋 평가")
     print("━" * 72)
 
     contaminated = contamination(items, kb)

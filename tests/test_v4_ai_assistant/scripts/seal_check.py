@@ -1,6 +1,6 @@
 """
 scripts/seal_check.py
-봉인된 골든셋(test v2)이 "무엇이" 바뀌었는지 진단하고 봉인 상태를 판정한다.
+봉인된 골든 데이터셋(test v2)이 "무엇이" 바뀌었는지 진단하고 봉인 상태를 판정한다.
 
 실행:
     python scripts/seal_check.py                    # 현재 파일 vs Git HEAD 비교 + 봉인 판정
