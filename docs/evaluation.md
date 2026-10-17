@@ -192,8 +192,8 @@ pytest                                      # 단위 · AppTest 통합 · 골든
 
 ### 12.1 왜 새로 만들었나
 
-test v1 은 1라운드 측정으로 소모됐다. 오안내 13건을 보고 고친 시스템을 같은 문항으로 재면 그 점수는 외운 점수다.
-또 v1 은 개발자가 직접 썼다. 2라운드는 **AI(Claude)로 새 문항을 작성하고, 코드를 고치기 전에 봉인했다.**
+test v1 은 1라운드 측정으로 소모됐다. 오안내 13건을 보고 고친 시스템을 같은 문항으로 측정하면 그 점수는 외운 점수다.
+또 v1 은 개발자가 직접 작성했다. 2라운드는 **AI(Claude)로 새 문항을 작성하고, 코드를 고치기 전에 봉인했다.**
 
 ### 12.2 구성 — 64문항
 
@@ -375,12 +375,12 @@ kiwipiepy 가 없으면 자동으로 bigram 으로 내려간다. 두 방식은 �
 ## 18. 실행 방법 (2라운드)
 
 ```bash
-python scripts/eval_rag.py                              # tune 분할 (dev + 퇴역 test v1)
-python scripts/eval_rag.py --sweep                      # 임계값 스윕 (tune)
-python scripts/eval_rag.py --explain G-025              # 문항별 단위 분해
-python scripts/eval_rag.py --split test2 --label X      # 봉인 분할 — 실행이 기록된다
+python scripts/eval_rag.py                          # tune 분할 (dev + 퇴역 test v1)
+python scripts/eval_rag.py --sweep                  # 임계값 스윕 (tune)
+python scripts/eval_rag.py --explain G-025          # 문항별 단위 분해
+python scripts/eval_rag.py --split test2 --label X  # 봉인 분할 — 실행이 기록된다
 ASSISTANT_TOKENIZER=bigram python scripts/eval_rag.py   # bigram 폴백 경로
-python scripts/eval_rag.py --vector                     # 벡터 평가 (OPEN API 키 필요 · 런북)
-python scripts/eval_rag.py --generate --backend both    # 생성 평가 (OPEN API 키 필요 · 런북)
-pytest                                                  # 85개 · OPEN API 키 불필요
+python scripts/eval_rag.py --vector                 # 벡터 평가 (키 필요 · 런북)
+python scripts/eval_rag.py --generate --backend both    # 생성 평가 (키 필요 · 런북)
+pytest                                              # 91개 · 키 불필요
 ```
