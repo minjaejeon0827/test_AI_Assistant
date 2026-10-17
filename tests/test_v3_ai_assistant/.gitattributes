@@ -1,0 +1,13 @@
+# Normalize line endings in the repo (LF). Windows checkouts may still use CRLF in the working tree;
+# hashes in assistant/kb.py:md_source_hash ignore CRLF and UTF-8 BOM anyway (docs/troubleshooting.md TS-02).
+* text=auto eol=lf
+
+# Windows-only scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary
+*.png binary
+*.gif binary
+*.npy binary
