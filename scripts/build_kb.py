@@ -9,7 +9,7 @@ data/install_kb.md  →  data/install_kb.json
 ★ 검증에 실패하면 json 을 만들지 않는다
   특히 다운로드 URL · 전화번호가 본문에 다시 들어오면 빌드를 멈춘다.
   원본 가이드의 서명 URL 57개는 2025-06 발급분이라 이미 만료됐을 가능성이 높다.
-  만료 링크 안내 시 사용자에게 오안내 하는 것이다.
+  만료 된 링크를 사용자에게 오안내 하면 안 된다.
 """
 
 from __future__ import annotations
@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from assistant import config as C
+from assistant.console import safe_console
 from assistant.kb import md_source_hash
 
 PRODUCT_RE = re.compile(r"^##\s+PRODUCT\s*\|\s*(\w+)\s*\|\s*(.+?)\s*$")
@@ -205,11 +206,12 @@ def warn_if_index_stale(kb_hash: str) -> None:
 
 
 def main() -> int:
+    safe_console()
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true", help="재생성 없이 동기화 여부만 확인")
     args = ap.parse_args()
 
-    md_text = C.KB_MD.read_text(encoding="utf-8")
+    md_text = C.KB_MD.read_text(encoding="utf-8-sig")   # BOM 이 있어도 첫 줄이 깨지지 않게
     products, unsupported, chunks = parse(md_text)
     addons = parse_addons(md_text)
 
@@ -239,7 +241,13 @@ def main() -> int:
             return 1
         old = json.loads(C.KB_JSON.read_text(encoding="utf-8"))
         if old.get("source_sha256") != kb_hash:
-            print("❌ install_kb.md 가 바뀌었는데 json 이 갱신되지 않았다.", file=sys.stderr)
+            print("❌ install_kb.md 가 바뀌었는데 json 이 갱신되지 않았다.\n"
+                  f"   md   : {kb_hash[:16]}\n"
+                  f"   json : {old.get('source_sha256', '')[:16]}\n"
+                  "   1) git diff data/install_kb.md 로 바뀐 내용을 확인한다\n"
+                  "   2-a) 의도한 수정 → python scripts/build_kb.py (md·json 함께 커밋)\n"
+                  "   2-b) 의도하지 않음 → git checkout -- data/install_kb.md\n"
+                  "   자세히: docs/troubleshooting.md (TS-02)", file=sys.stderr)
             return 1
         print(f"✅ 동기화 OK ({len(chunks)}개 청크)")
         return 0

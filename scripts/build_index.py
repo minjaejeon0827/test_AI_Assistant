@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from assistant import config as C
+from assistant.console import safe_console
 from assistant.kb import md_source_hash
 
 BATCH = 64
@@ -92,6 +93,7 @@ def build(client=None) -> dict:
 
 
 def main() -> int:
+    safe_console()
     meta = build()
     size_kb = C.VECTORS_NPY.stat().st_size / 1024
     print(f"✅ {meta['count']}개 × {meta['dim']}차원 → {C.INDEX_DIR.relative_to(C.ROOT)} ({size_kb:.0f}KB)")
