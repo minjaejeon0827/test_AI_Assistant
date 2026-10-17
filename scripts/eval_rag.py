@@ -9,11 +9,12 @@ scripts/eval_rag.py
     python scripts/eval_rag.py --explain G-025 G-033    # 문항별 점수 분해
     python scripts/eval_rag.py --split test2 --label final   # 봉인된 test v2 (실행이 기록된다)
     python scripts/eval_rag.py --generate --backend both     # LLM 생성 평가 · Chat vs Responses (키 필요)
+    python scripts/eval_rag.py --split test2 --generate      # 봉인 test2 생성 평가 — tune 에서 확정한 백엔드 1개 (auto)
     python scripts/eval_rag.py --strict                 # 목표 미달 시 exit 1 (CI)
 
 ★ 평가 원칙
   1. 재현성 — 판정·검색 평가는 LLM 을 부르지 않는다. 같은 입력이면 같은 점수다.
-  2. 평가 오염 차단 — 골든 문항이 지식 베이스 '예상 질문'이나 다른 분할 문항과 거의 같으면
+  2. 평가 오염 차단 — 골든 데이터셋 문항이 지식 베이스 '예상 질문'이나 다른 분할 문항과 거의 같으면
      검색이 문장을 외워서 맞힌다. 겹침이 있으면 평가를 시작하지 않는다.
   3. 튜닝 / 측정 분리 — 임계값은 tune 분할에서만 고른다. 성능은 봉인된 test2 로만 보고한다.
 
@@ -47,11 +48,15 @@ from assistant.pipeline import SYSTEM_PROMPT, ConversationState, decide
 from assistant.retriever import Retriever
 from assistant.text import bigrams, squeeze
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import seal_check  # noqa: E402
+
 GOLDEN_FILES = {
     "v1": C.ROOT / "eval" / "golden_rag.json",       # dev · test
     "v2": C.ROOT / "eval" / "golden_rag_v2.json",    # test2 (봉인)
 }
 REPORT_DIR = C.ROOT / "eval" / "reports"
+BACKEND_DECISION = REPORT_DIR / "backend_decision.json"   # tune 생성 평가의 사전 등록 규칙 판정 (test2 가 읽는다)
 TEST2_LOG = Path(os.getenv("ASSISTANT_TEST2_LOG", REPORT_DIR / "test2_runs.log"))
 
 DECISIONS = {"answer", "handoff", "clarify", "smalltalk", "blocked", "invalid"}
@@ -166,7 +171,7 @@ def log_test2_run(label: str, cond: dict, m: dict) -> int:
     prev = TEST2_LOG.read_text(encoding="utf-8").splitlines() if TEST2_LOG.exists() else []
     line = json.dumps({
         "run_at": cond["run_at"], "label": label, "code": cond["code"], "golden_v2": cond["golden"].get("v2"),
-        "tokenizer": cond["tokenizer"], "mode": cond["mode"],
+        "tokenizer": cond["tokenizer"], "mode": cond["mode"], "seal": cond.get("seal", "unknown"),
         "under_handoff": m["under_handoff"], "wrong_answer": m["wrong_answer"],
         "hit_at_1": round(m["hit_at_1"], 3), "over_handoff_rate": round(m["over_handoff_rate"], 3),
     }, ensure_ascii=False)
@@ -581,6 +586,95 @@ def write_generate_report(split: str, results: list[dict], decision: tuple[str, 
     return path
 
 
+class BackendChoiceError(ValueError):
+    """백엔드를 정할 수 없다 — 메시지에 다음 행동을 담는다."""
+
+
+def save_backend_decision(decision: tuple[str, list[str]], results: list[dict], split: str) -> Path:
+    """tune 분할의 판정을 파일로 남긴다.
+
+    ★ 결론이 보고서 문장 속에만 있으면 담당자가 옮겨 적는다
+      옮겨 적다 빠뜨리거나(이번 --backend 인자 누락) 다르게 적으면, test2 를 엉뚱한 백엔드로 1회 소모한다.
+      → 기계가 읽는 판정 파일을 남기고 test2 는 그 파일만 따른다.
+    """
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    BACKEND_DECISION.write_text(json.dumps({
+        "backend": decision[0], "checks": decision[1], "split": split,
+        "decided_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "model": results[0]["model"], "code": code_fingerprint(), "n": results[0]["n"],
+        "rule": BACKEND_SWITCH_RULE,
+    }, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    return BACKEND_DECISION
+
+
+def load_backend_decision() -> dict | None:
+    if not BACKEND_DECISION.exists():
+        return None
+    try:
+        d = json.loads(BACKEND_DECISION.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError:
+        return None
+    return d if d.get("backend") in C.LLM_BACKENDS else None
+
+
+def _test2_generate_runs(backend: str) -> int:
+    if not TEST2_LOG.exists():
+        return 0
+    n = 0
+    for line in TEST2_LOG.read_text(encoding="utf-8").splitlines():
+        try:
+            n += json.loads(line).get("label") == f"generate_{backend}"
+        except json.JSONDecodeError:
+            continue
+    return n
+
+
+def resolve_backends(requested: str | None, split: str, model: str, allow_rerun: bool = False) -> tuple[list[str], str]:
+    """--generate 에서 실제로 돌릴 백엔드와 그 근거를 정한다.
+
+    규칙
+      · tune/dev: 기본 both (비교가 목적).
+      · test2   : 1개만. 기본 auto = tune 판정 파일(backend_decision.json)의 결론.
+                  both 는 거부 — test2 로 백엔드를 고르면 봉인 세트로 튜닝하는 셈이다.
+                  판정과 다른 백엔드를 직접 지정하면 거부 — 결과를 보고 고르는 것과 같다.
+                  같은 백엔드로 이미 측정했으면 거부 — 최종 측정은 1회다 (--allow-test2-rerun 로 해제, 기록됨).
+    """
+    if split != "test2":
+        req = requested or "both"
+        if req == "auto":
+            d = load_backend_decision()
+            if d is None:
+                raise BackendChoiceError("판정 파일이 없다 → 먼저 python scripts/eval_rag.py --generate --backend both")
+            return [d["backend"]], f"tune 판정 ({d['decided_at']})"
+        return (["chat", "responses"] if req == "both" else [req]), "직접 지정"
+
+    req = requested or "auto"
+    if req == "both":
+        raise BackendChoiceError("test2 에서는 백엔드를 비교하지 않는다 (봉인 세트로 고르면 튜닝이다)\n"
+                                 "   → 비교는 tune 에서: python scripts/eval_rag.py --generate --backend both")
+    d = load_backend_decision()
+    if d is None:
+        if req == "auto":
+            raise BackendChoiceError("tune 판정 파일(eval/reports/backend_decision.json)이 없다\n"
+                                     "   → 런북 4) 먼저: python scripts/eval_rag.py --generate --backend both")
+        source = "직접 지정 (tune 판정 없음 — 보고서에 그 사실을 적는다)"
+        backend = req
+    else:
+        if req not in ("auto", d["backend"]):
+            raise BackendChoiceError(f"tune 판정은 {d['backend']} 인데 {req} 를 지정했다 — 사전 등록 규칙을 따른다\n"
+                                     f"   → python scripts/eval_rag.py --split test2 --generate  (auto = {d['backend']})")
+        if d.get("model") and d["model"] != model:
+            raise BackendChoiceError(f"tune 판정 모델({d['model']})과 지금 모델({model})이 다르다\n"
+                                     "   → ASSISTANT_MODEL 을 맞추거나, 바꾼 모델로 런북 4)를 다시 실행한다")
+        backend, source = d["backend"], f"tune 판정 ({d['decided_at']})"
+    runs = _test2_generate_runs(backend)
+    if runs and not allow_rerun:
+        raise BackendChoiceError(f"test2 생성 평가({backend})를 이미 {runs}회 실행했다 — 최종 측정은 1회다\n"
+                                 "   → 기존 보고서 eval/reports/rag_generate_test2.md 를 쓴다"
+                                 " (꼭 다시 재야 하면 --allow-test2-rerun, 횟수가 기록된다)")
+    return [backend], source
+
+
 # endregion 생성 평가
 
 # region 출력
@@ -590,7 +684,7 @@ def render(m: dict, ok: dict[str, bool], cond: dict) -> str:
     mark = lambda k: "✅" if ok.get(k, True) else "❌"  # noqa: E731
     return "\n".join([
         f"  조건   split={cond['split']} · tokenizer={cond['tokenizer']} · mode={cond['mode']} · code {cond['code']}",
-        f"         KB {cond['kb_sha256']} · 골든 {cond['golden']} · {m['n']}문항",
+        f"         KB {cond['kb_sha256']} · 골든 {cond['golden']} · 봉인 {cond.get('seal', '-')} · {m['n']}문항",
         f"         임계값 앵커 {cond['min_lexical']:.2f} / 무앵커 {cond['min_lexical_unanchored']:.2f}"
         f" / 벡터 {cond['min_vector']:.2f}",
         "",
@@ -658,8 +752,7 @@ def build_retriever(kb) -> Retriever:
     return Retriever(kb, embedder)
 
 
-def main(argv: list[str] | None = None) -> int:
-    safe_console()
+def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser()
     ap.add_argument("--split", choices=["dev", "test", "tune", "test2", "all"], default="tune",
                     help="tune = dev + 퇴역한 test v1 (2라운드 튜닝셋) · test2 = 봉인된 test v2")
@@ -669,10 +762,19 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--allow-test2-explain", action="store_true", help=argparse.SUPPRESS)
     ap.add_argument("--vector", action="store_true", help="local vs hybrid 비교 · 벡터 게이트 규칙 적용 (키 필요)")
     ap.add_argument("--generate", action="store_true", help="LLM 생성까지 평가 (키 필요)")
-    ap.add_argument("--backend", choices=["chat", "responses", "both"], default="both")
+    ap.add_argument("--backend", choices=["chat", "responses", "both", "auto"], nargs="?", const="auto", default=None,
+                    help="tune/dev 기본 both · test2 기본 auto(= tune 판정 파일의 결론). 값 없이 쓰면 auto")
+    ap.add_argument("--allow-test2-rerun", action="store_true", help="test2 생성 평가 재실행 허용 (기록됨)")
     ap.add_argument("--strict", action="store_true", help="목표 미달 시 exit 1")
     ap.add_argument("--allow-contamination", action="store_true")
-    args = ap.parse_args(argv)
+    ap.add_argument("--allow-broken-seal", action="store_true",
+                    help="봉인이 깨진 test2 로 측정 (보고서에 '봉인 깨짐'이 기록된다. 최종 성능 주장에 쓰지 않는다)")
+    return ap
+
+
+def main(argv: list[str] | None = None) -> int:
+    safe_console()
+    args = build_parser().parse_args(argv)
 
     kb = load_kb()
     if kb.source_sha256 != md_source_hash(C.KB_MD):
@@ -702,6 +804,14 @@ def main(argv: list[str] | None = None) -> int:
         explain(items, args.explain, kb, retriever)
         return 0
 
+    seal = seal_check.seal_status()
+    if args.split == "test2":
+        # ★ 봉인이 깨진 세트로 낸 점수는 "처음 보는 문항" 성능이 아니다 — 측정 전에 막는다 (TS-05)
+        print(f"  봉인 상태  {seal['status']} · 내용 해시 {seal['content_sha256'][:16]}")
+        if seal["status"] == seal_check.BROKEN and not args.allow_broken_seal:
+            print("  ❌ test2 봉인이 깨졌다 → python scripts/seal_check.py 로 변경 내용을 확인한다 (TS-05)")
+            return 2
+
     target = select(items, args.split)
     if args.sweep:
         if args.split == "test2":
@@ -725,11 +835,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.generate:
+        try:
+            # ★ 키 확인보다 먼저 — API 비용이 나가기 전에, 잘못된 조합을 모두 걸러낸다
+            backends, source = resolve_backends(args.backend, args.split, C.DEFAULT_MODEL, args.allow_test2_rerun)
+        except BackendChoiceError as exc:
+            print(f"  ❌ {exc}")
+            return 2
         if not C.has_openai_key():
             raise SystemExit("❌ --generate 는 OPENAI_API_KEY 가 필요하다 (.env 또는 환경 변수)")
+        print(f"  생성 평가  {args.split} · 백엔드 {', '.join(backends)} · 근거 {source} · 모델 {C.DEFAULT_MODEL}")
+        if args.split == "test2" and C.LLM_BACKEND != backends[0]:
+            print(f"  ⚠️ 운영 기본값 ASSISTANT_LLM_BACKEND={C.LLM_BACKEND} 가 판정({backends[0]})과 다르다 → 런북 5) 를 반영한다")
         from assistant import llm
         client = llm.make_client(os.environ["OPENAI_API_KEY"])
-        backends = ["chat", "responses"] if args.backend == "both" else [args.backend]
         results = [generate_eval(target, kb, retriever, b, client, C.DEFAULT_MODEL) for b in backends]
         decision = decide_backend(results[0], results[1]) if len(results) == 2 else None
         for r in results:
@@ -740,12 +858,16 @@ def main(argv: list[str] | None = None) -> int:
             for line in decision[1]:
                 print("    " + line)
         print(f"  보고서 → {write_generate_report(args.split, results, decision).relative_to(C.ROOT)}")
+        if decision and args.split == "tune":
+            print(f"  판정 파일 → {save_backend_decision(decision, results, args.split).relative_to(C.ROOT)}"
+                  "  (test2 는 이 파일의 결론만 따른다)")
         if args.split == "test2":
             REPORT_DIR.mkdir(parents=True, exist_ok=True)
             with TEST2_LOG.open("a", encoding="utf-8") as f:
                 for r in results:
                     f.write(json.dumps({"run_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                                         "label": f"generate_{r['backend']}", "code": code_fingerprint(),
+                                        "model": r["model"], "backend_source": source, "seal": seal["status"],
                                         "cited_correct_rate": round(r["cited_correct_rate"], 3),
                                         "under_handoff": r["under_handoff"]}, ensure_ascii=False) + "\n")
         return 0
@@ -756,6 +878,7 @@ def main(argv: list[str] | None = None) -> int:
     tokenizer = getattr(retriever, "tokenizer", "bigram")
     cond = {"split": args.split, "label": args.label, "tokenizer": tokenizer, "mode": retriever.mode,
             "code": code_fingerprint(), "kb_sha256": kb.source_sha256[:16], "golden": golden_hash,
+            "seal": seal["status"], "golden_v2_content": seal["content_sha256"][:16],
             "min_lexical": getattr(C, "HANDOFF_MIN_LEXICAL" if tokenizer == "kiwi" else "HANDOFF_MIN_LEXICAL_BIGRAM",
                                    C.HANDOFF_MIN_LEXICAL),
             "min_lexical_unanchored": getattr(C, "HANDOFF_MIN_LEXICAL_UNANCHORED" if tokenizer == "kiwi"
