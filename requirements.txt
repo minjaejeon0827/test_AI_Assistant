@@ -1,13 +1,12 @@
-# 직접 의존성만 명시한다.
-# pip freeze 결과 전체를 커밋하면 전이 의존성과 플랫폼 종속 패키지까지 고정되어
-# 다른 OS에서 설치가 깨지거나 보안 패치 적용이 막힌다.
+# Direct dependencies only. Keep this file ASCII-only:
+# pip < 24 reads requirements files with the OS locale encoding (cp949 on Korean Windows)
+# and fails on any non-ASCII byte. See docs/troubleshooting.md (TS-01).
 #
-# 설치:   pip install -r requirements.txt
-# 개발:   pip install -r requirements-dev.txt   (테스트 포함)
-# 재현용 잠금 파일이 필요한 경우: pip freeze > requirements.lock.txt
+# Install: pip install -r requirements.txt
+# Dev:     pip install -r requirements-dev.txt
 
 streamlit>=1.40
 openai>=3.0,<4.0
 numpy>=1.26
-# 형태소 분석기 — 없어도 동작한다(bigram 폴백). 모델 파일 포함 약 60MB
+# Korean morphological analyzer (optional: falls back to bigram tokenizer if missing, ~90MB model)
 kiwipiepy>=0.20
