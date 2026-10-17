@@ -1126,7 +1126,7 @@
    "decision": "handoff",
    "product": "AutoCAD"
   },
-  "notes": "'기존…무시' 인젝션 오탐 금지 · KB 밖",
+  "notes": "'기존…무시' 프롬프트 인젝션 오탐 금지 · KB 밖",
   "author": "Claude (AI) — 설계 세션과 같은 모델, 코드 변경 전 작성",
   "reviewed_by": null,
   "created_at": "2026-10-09"
@@ -1141,7 +1141,7 @@
   "expected": {
    "decision": "handoff"
   },
-  "notes": "'관리자' 인젝션 오탐 금지 · KB 밖",
+  "notes": "'관리자' 프롬프트 인젝션 오탐 금지 · KB 밖",
   "author": "Claude (AI) — 설계 세션과 같은 모델, 코드 변경 전 작성",
   "reviewed_by": null,
   "created_at": "2026-10-09"
