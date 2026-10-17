@@ -1,0 +1,12 @@
+# Direct dependencies only. Keep this file ASCII-only:
+# pip < 24 reads requirements files with the OS locale encoding (cp949 on Korean Windows)
+# and fails on any non-ASCII byte. See docs/troubleshooting.md (TS-01).
+#
+# Install: pip install -r requirements.txt
+# Dev:     pip install -r requirements-dev.txt
+
+streamlit>=1.40
+openai>=3.0,<4.0
+numpy>=1.26
+# Korean morphological analyzer (optional: falls back to bigram tokenizer if missing, ~90MB model)
+kiwipiepy>=0.20

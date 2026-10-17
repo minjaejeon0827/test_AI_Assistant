@@ -1,0 +1,1999 @@
+[
+ {
+  "backend": "chat",
+  "model": "gpt-5.6-terra",
+  "n": 63,
+  "final_accuracy": 0.9523809523809523,
+  "under_handoff": 0,
+  "cited_correct_rate": 1.0,
+  "wrong_cite": 0,
+  "recovered_from_wrong_top1": 1,
+  "grounded_rate": 1.0,
+  "invalid_citation": 0,
+  "llm_declined_on_answerable": 2,
+  "links_removed": 0,
+  "errors": 0,
+  "tokens_total": 27809,
+  "latency_p50_ms": 1729,
+  "latency_p95_ms": 2643,
+  "rows": [
+   {
+    "id": "G-001",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 832,
+    "latency_ms": 2771,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-04"
+    ]
+   },
+   {
+    "id": "G-002",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 774,
+    "latency_ms": 1828,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-03"
+    ]
+   },
+   {
+    "id": "G-003",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-EBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 695,
+    "latency_ms": 2393,
+    "top1_correct": true,
+    "accepted": [
+     "KB-EBOX-02"
+    ]
+   },
+   {
+    "id": "G-004",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-IW-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 762,
+    "latency_ms": 1420,
+    "top1_correct": true,
+    "accepted": [
+     "KB-IW-03"
+    ]
+   },
+   {
+    "id": "G-005",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-03",
+     "KB-C3D-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 790,
+    "latency_ms": 1431,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-03"
+    ]
+   },
+   {
+    "id": "G-006",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 801,
+    "latency_ms": 1328,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-01"
+    ]
+   },
+   {
+    "id": "G-007",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-008",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-009",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-010",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-011",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-012",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-013",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 848,
+    "latency_ms": 1590,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-04"
+    ]
+   },
+   {
+    "id": "G-014",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-01",
+     "KB-RVT-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 933,
+    "latency_ms": 2643,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-04"
+    ]
+   },
+   {
+    "id": "G-015",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-016",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-017",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-018",
+    "expected": "smalltalk",
+    "got": "smalltalk",
+    "reason": "",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-019",
+    "expected": "clarify",
+    "got": "clarify",
+    "reason": "no_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-020",
+    "expected": "blocked",
+    "got": "blocked",
+    "reason": "지시_무시",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-021",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-022",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-03",
+     "KB-NAVIS-03",
+     "KB-ACAD-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 885,
+    "latency_ms": 2105,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03",
+     "KB-C3D-03",
+     "KB-IW-03",
+     "KB-NAVIS-03",
+     "KB-RVT-03"
+    ]
+   },
+   {
+    "id": "G-023",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-01",
+     "KB-NAVIS-03",
+     "KB-NAVIS-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 1116,
+    "latency_ms": 2780,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-01"
+    ]
+   },
+   {
+    "id": "G-024",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 846,
+    "latency_ms": 1843,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-01"
+    ]
+   },
+   {
+    "id": "G-025",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 944,
+    "latency_ms": 2196,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-01"
+    ]
+   },
+   {
+    "id": "G-026",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-IW-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 902,
+    "latency_ms": 1875,
+    "top1_correct": true,
+    "accepted": [
+     "KB-IW-01"
+    ]
+   },
+   {
+    "id": "G-027",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 837,
+    "latency_ms": 1687,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-04"
+    ]
+   },
+   {
+    "id": "G-028",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 779,
+    "latency_ms": 1249,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-03"
+    ]
+   },
+   {
+    "id": "G-029",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 754,
+    "latency_ms": 1397,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03"
+    ]
+   },
+   {
+    "id": "G-030",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 811,
+    "latency_ms": 1751,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-04"
+    ]
+   },
+   {
+    "id": "G-031",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-IW-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 740,
+    "latency_ms": 1341,
+    "top1_correct": true,
+    "accepted": [
+     "KB-IW-04"
+    ]
+   },
+   {
+    "id": "G-032",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 423,
+    "latency_ms": 1239,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-02"
+    ]
+   },
+   {
+    "id": "G-033",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 811,
+    "latency_ms": 1448,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-02"
+    ]
+   },
+   {
+    "id": "G-034",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 682,
+    "latency_ms": 1751,
+    "top1_correct": true,
+    "accepted": [
+     "KB-CBOX-01"
+    ]
+   },
+   {
+    "id": "G-035",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 580,
+    "latency_ms": 1209,
+    "top1_correct": true,
+    "accepted": [
+     "KB-CBOX-02"
+    ]
+   },
+   {
+    "id": "G-036",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-EBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 677,
+    "latency_ms": 1267,
+    "top1_correct": true,
+    "accepted": [
+     "KB-EBOX-01"
+    ]
+   },
+   {
+    "id": "G-037",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 710,
+    "latency_ms": 1233,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RBOX-01"
+    ]
+   },
+   {
+    "id": "G-038",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 699,
+    "latency_ms": 1325,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RBOX-02"
+    ]
+   },
+   {
+    "id": "G-039",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 675,
+    "latency_ms": 2145,
+    "top1_correct": false,
+    "accepted": [
+     "KB-CBOX-02"
+    ]
+   },
+   {
+    "id": "G-040",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 766,
+    "latency_ms": 1565,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RBOX-02"
+    ]
+   },
+   {
+    "id": "G-041",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 823,
+    "latency_ms": 2001,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-03"
+    ]
+   },
+   {
+    "id": "G-042",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-EBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 768,
+    "latency_ms": 1763,
+    "top1_correct": true,
+    "accepted": [
+     "KB-EBOX-02"
+    ]
+   },
+   {
+    "id": "G-043",
+    "expected": "answer",
+    "got": "handoff",
+    "reason": "llm_declined",
+    "cited": [],
+    "grounded": false,
+    "removed": 0,
+    "tokens": 846,
+    "latency_ms": 1524,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-03"
+    ]
+   },
+   {
+    "id": "G-044",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-01",
+     "KB-EBOX-01",
+     "KB-RBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 1059,
+    "latency_ms": 2441,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03",
+     "KB-CBOX-01",
+     "KB-EBOX-01",
+     "KB-RBOX-01"
+    ]
+   },
+   {
+    "id": "G-045",
+    "expected": "answer",
+    "got": "handoff",
+    "reason": "llm_declined",
+    "cited": [],
+    "grounded": false,
+    "removed": 0,
+    "tokens": 745,
+    "latency_ms": 1729,
+    "top1_correct": false,
+    "accepted": [
+     "KB-ACAD-01",
+     "KB-C3D-01",
+     "KB-IW-01",
+     "KB-NAVIS-01",
+     "KB-RVT-01"
+    ]
+   },
+   {
+    "id": "G-046",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 848,
+    "latency_ms": 1976,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-01"
+    ]
+   },
+   {
+    "id": "G-047",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 853,
+    "latency_ms": 1759,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-04"
+    ]
+   },
+   {
+    "id": "G-048",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 795,
+    "latency_ms": 1435,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-02"
+    ]
+   },
+   {
+    "id": "G-049",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-050",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-051",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-052",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-053",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-054",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-055",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-056",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-057",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-058",
+    "expected": "smalltalk",
+    "got": "smalltalk",
+    "reason": "",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-059",
+    "expected": "clarify",
+    "got": "clarify",
+    "reason": "no_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-060",
+    "expected": "blocked",
+    "got": "blocked",
+    "reason": "역할_재정의",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-061",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-062",
+    "expected": "answer",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03",
+     "KB-C3D-03",
+     "KB-IW-03",
+     "KB-NAVIS-03",
+     "KB-RVT-03"
+    ]
+   },
+   {
+    "id": "G-063",
+    "expected": "invalid",
+    "got": "invalid",
+    "reason": "too_short",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   }
+  ]
+ },
+ {
+  "backend": "responses",
+  "model": "gpt-5.6-terra",
+  "n": 63,
+  "final_accuracy": 0.9523809523809523,
+  "under_handoff": 0,
+  "cited_correct_rate": 0.9696969696969697,
+  "wrong_cite": 0,
+  "recovered_from_wrong_top1": 1,
+  "grounded_rate": 0.9696969696969697,
+  "invalid_citation": 0,
+  "llm_declined_on_answerable": 2,
+  "links_removed": 0,
+  "errors": 0,
+  "tokens_total": 28162,
+  "latency_p50_ms": 1765,
+  "latency_p95_ms": 2924,
+  "rows": [
+   {
+    "id": "G-001",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 833,
+    "latency_ms": 2116,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-04"
+    ]
+   },
+   {
+    "id": "G-002",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 780,
+    "latency_ms": 1720,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-03"
+    ]
+   },
+   {
+    "id": "G-003",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-EBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 698,
+    "latency_ms": 1689,
+    "top1_correct": true,
+    "accepted": [
+     "KB-EBOX-02"
+    ]
+   },
+   {
+    "id": "G-004",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-IW-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 763,
+    "latency_ms": 1529,
+    "top1_correct": true,
+    "accepted": [
+     "KB-IW-03"
+    ]
+   },
+   {
+    "id": "G-005",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 764,
+    "latency_ms": 1721,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-03"
+    ]
+   },
+   {
+    "id": "G-006",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 802,
+    "latency_ms": 1540,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-01"
+    ]
+   },
+   {
+    "id": "G-007",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-008",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-009",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-010",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-011",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-012",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-013",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 855,
+    "latency_ms": 2080,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-04"
+    ]
+   },
+   {
+    "id": "G-014",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-01",
+     "KB-RVT-03",
+     "KB-RVT-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 1036,
+    "latency_ms": 2574,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-04"
+    ]
+   },
+   {
+    "id": "G-015",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-016",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-017",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-018",
+    "expected": "smalltalk",
+    "got": "smalltalk",
+    "reason": "",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-019",
+    "expected": "clarify",
+    "got": "clarify",
+    "reason": "no_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-020",
+    "expected": "blocked",
+    "got": "blocked",
+    "reason": "지시_무시",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-021",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-022",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [],
+    "grounded": false,
+    "removed": 0,
+    "tokens": 772,
+    "latency_ms": 1661,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03",
+     "KB-C3D-03",
+     "KB-IW-03",
+     "KB-NAVIS-03",
+     "KB-RVT-03"
+    ]
+   },
+   {
+    "id": "G-023",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-01",
+     "KB-NAVIS-03",
+     "KB-NAVIS-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 1093,
+    "latency_ms": 3016,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-01"
+    ]
+   },
+   {
+    "id": "G-024",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 851,
+    "latency_ms": 1823,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-01"
+    ]
+   },
+   {
+    "id": "G-025",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 947,
+    "latency_ms": 2646,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-01"
+    ]
+   },
+   {
+    "id": "G-026",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-IW-01",
+     "KB-IW-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 914,
+    "latency_ms": 2224,
+    "top1_correct": true,
+    "accepted": [
+     "KB-IW-01"
+    ]
+   },
+   {
+    "id": "G-027",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 852,
+    "latency_ms": 2091,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-04"
+    ]
+   },
+   {
+    "id": "G-028",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 782,
+    "latency_ms": 1765,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-03"
+    ]
+   },
+   {
+    "id": "G-029",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-ACAD-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 759,
+    "latency_ms": 1676,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03"
+    ]
+   },
+   {
+    "id": "G-030",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 803,
+    "latency_ms": 1672,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-04"
+    ]
+   },
+   {
+    "id": "G-031",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-IW-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 748,
+    "latency_ms": 1369,
+    "top1_correct": true,
+    "accepted": [
+     "KB-IW-04"
+    ]
+   },
+   {
+    "id": "G-032",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 423,
+    "latency_ms": 1533,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-02"
+    ]
+   },
+   {
+    "id": "G-033",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 982,
+    "latency_ms": 2924,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-02"
+    ]
+   },
+   {
+    "id": "G-034",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 683,
+    "latency_ms": 1731,
+    "top1_correct": true,
+    "accepted": [
+     "KB-CBOX-01"
+    ]
+   },
+   {
+    "id": "G-035",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 584,
+    "latency_ms": 2110,
+    "top1_correct": true,
+    "accepted": [
+     "KB-CBOX-02"
+    ]
+   },
+   {
+    "id": "G-036",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-EBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 674,
+    "latency_ms": 1147,
+    "top1_correct": true,
+    "accepted": [
+     "KB-EBOX-01"
+    ]
+   },
+   {
+    "id": "G-037",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 711,
+    "latency_ms": 1516,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RBOX-01"
+    ]
+   },
+   {
+    "id": "G-038",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 697,
+    "latency_ms": 1336,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RBOX-02"
+    ]
+   },
+   {
+    "id": "G-039",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 673,
+    "latency_ms": 1780,
+    "top1_correct": false,
+    "accepted": [
+     "KB-CBOX-02"
+    ]
+   },
+   {
+    "id": "G-040",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 767,
+    "latency_ms": 1703,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RBOX-02"
+    ]
+   },
+   {
+    "id": "G-041",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-03"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 824,
+    "latency_ms": 1470,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-03"
+    ]
+   },
+   {
+    "id": "G-042",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-EBOX-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 779,
+    "latency_ms": 1777,
+    "top1_correct": true,
+    "accepted": [
+     "KB-EBOX-02"
+    ]
+   },
+   {
+    "id": "G-043",
+    "expected": "answer",
+    "got": "handoff",
+    "reason": "llm_declined",
+    "cited": [],
+    "grounded": false,
+    "removed": 0,
+    "tokens": 852,
+    "latency_ms": 1922,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-03"
+    ]
+   },
+   {
+    "id": "G-044",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-CBOX-01",
+     "KB-EBOX-01",
+     "KB-RBOX-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 1173,
+    "latency_ms": 3114,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03",
+     "KB-CBOX-01",
+     "KB-EBOX-01",
+     "KB-RBOX-01"
+    ]
+   },
+   {
+    "id": "G-045",
+    "expected": "answer",
+    "got": "handoff",
+    "reason": "llm_declined",
+    "cited": [],
+    "grounded": false,
+    "removed": 0,
+    "tokens": 826,
+    "latency_ms": 2724,
+    "top1_correct": false,
+    "accepted": [
+     "KB-ACAD-01",
+     "KB-C3D-01",
+     "KB-IW-01",
+     "KB-NAVIS-01",
+     "KB-RVT-01"
+    ]
+   },
+   {
+    "id": "G-046",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-RVT-01"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 830,
+    "latency_ms": 2028,
+    "top1_correct": true,
+    "accepted": [
+     "KB-RVT-01"
+    ]
+   },
+   {
+    "id": "G-047",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-NAVIS-04"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 848,
+    "latency_ms": 2115,
+    "top1_correct": true,
+    "accepted": [
+     "KB-NAVIS-04"
+    ]
+   },
+   {
+    "id": "G-048",
+    "expected": "answer",
+    "got": "answer",
+    "reason": "",
+    "cited": [
+     "KB-C3D-02"
+    ],
+    "grounded": true,
+    "removed": 0,
+    "tokens": 784,
+    "latency_ms": 1574,
+    "top1_correct": true,
+    "accepted": [
+     "KB-C3D-02"
+    ]
+   },
+   {
+    "id": "G-049",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-050",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-051",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-052",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_version",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-053",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-054",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-055",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-056",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-057",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-058",
+    "expected": "smalltalk",
+    "got": "smalltalk",
+    "reason": "",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-059",
+    "expected": "clarify",
+    "got": "clarify",
+    "reason": "no_product",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-060",
+    "expected": "blocked",
+    "got": "blocked",
+    "reason": "역할_재정의",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-061",
+    "expected": "handoff",
+    "got": "handoff",
+    "reason": "unsupported_problem",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   },
+   {
+    "id": "G-062",
+    "expected": "answer",
+    "got": "handoff",
+    "reason": "low_relevance",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": true,
+    "accepted": [
+     "KB-ACAD-03",
+     "KB-C3D-03",
+     "KB-IW-03",
+     "KB-NAVIS-03",
+     "KB-RVT-03"
+    ]
+   },
+   {
+    "id": "G-063",
+    "expected": "invalid",
+    "got": "invalid",
+    "reason": "too_short",
+    "cited": [],
+    "grounded": null,
+    "removed": 0,
+    "tokens": 0,
+    "latency_ms": 0,
+    "top1_correct": false,
+    "accepted": []
+   }
+  ]
+ }
+]

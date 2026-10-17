@@ -1,0 +1,4 @@
+{"run_at": "2026-10-09", "label": "cost_estimate_count_only", "note": "LLM 호출 대상 건수만 집계(33/64). 지표 미출력"}
+{"run_at": "2026-10-09T09:41:00+00:00", "label": "baseline", "code": "43815ae83a34", "golden_v2": "95b4145b957ca33d", "tokenizer": "bigram", "mode": "local", "under_handoff": 0, "wrong_answer": 2, "hit_at_1": 0.838, "over_handoff_rate": 0.405}
+{"run_at": "2026-10-09T09:41:12+00:00", "label": "final", "code": "039ded1636f8", "golden_v2": "95b4145b957ca33d", "tokenizer": "kiwi", "mode": "local", "under_handoff": 1, "wrong_answer": 2, "hit_at_1": 0.946, "over_handoff_rate": 0.135}
+{"run_at": "2026-10-17T07:57:46+00:00", "label": "final_hybrid", "code": "3163dd6c84d9", "golden_v2": "95b4145b957ca33d", "tokenizer": "kiwi", "mode": "hybrid", "seal": "intact", "under_handoff": 0, "wrong_answer": 2, "hit_at_1": 0.946, "over_handoff_rate": 0.108}

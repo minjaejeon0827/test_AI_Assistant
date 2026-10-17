@@ -1,0 +1,12 @@
+#!/bin/sh
+# Block commits where data/install_kb.md changed but data/install_kb.json was not rebuilt.
+# Enable once per clone:  git config core.hooksPath .githooks
+# (docs/troubleshooting.md TS-02)
+if git diff --cached --name-only | grep -q '^data/install_kb\.md$'; then
+  PY=python; command -v "$PY" >/dev/null 2>&1 || PY=python3
+  PYTHONUTF8=1 "$PY" scripts/build_kb.py --check || {
+    echo "pre-commit: run 'python scripts/build_kb.py' and stage data/install_kb.json too." >&2
+    exit 1
+  }
+fi
+exit 0
