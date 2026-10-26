@@ -30,5 +30,5 @@
   "model": "text-embedding-3-small",
   "dim": 1536,
   "count": 26,
-  "source_sha256": "31adc148f9185145870eb2026b6dbcb05ec01b5ebd0945202113b7ded56d4650"
+  "source_sha256": "351bf864d6e99c2fb5985c28bb4d6787c084926aa4bde4a51c99edfb91d5bcb3"
 }
