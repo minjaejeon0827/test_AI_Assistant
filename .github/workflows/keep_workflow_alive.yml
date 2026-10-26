@@ -1,0 +1,22 @@
+name: Keep Workflow Alive (Monthly Empty Commit)
+
+on:
+  schedule:
+    - cron: "17 3 1 * *"    # 매월 1일 03:17 UTC (한국 시간 12:17)
+  workflow_dispatch:        # 수동 실행 버튼
+
+permissions:
+  contents: write           # 푸시 권한 필수
+
+jobs:
+  empty-commit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push monthly empty commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit --allow-empty -m "chore: monthly keepalive for scheduled workflows"
+          git push
